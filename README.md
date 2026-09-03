@@ -12,3 +12,7 @@
 ## 現状（随時更新・全ファイルの現状を記述）
 
 ## API,TOKEN関係（随時更新）
+
+| 種類 | 内容 |
+| -:- | :-- |
+| アクセストークン | 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 |
