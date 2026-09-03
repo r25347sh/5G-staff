@@ -41,6 +41,7 @@
     return base + "/" + path.replace(/^\//, "");
   }
   injectCss(p("css/style.css") + "?" + cacheBuster);
+  injectCss(p("css/portal.css") + "?" + cacheBuster);
   injectCss(p("menu/menu.css") + "?" + cacheBuster);
   const path = window.location.pathname;
   let pageCss = "";
