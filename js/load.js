@@ -1,5 +1,5 @@
 /**
- * js/load.js — 共通ローダー（CSS/JS 順序保証・重複防止・BASE検出）
+ * js/load.js — 共通ローダー
  */
 (function () {
   "use strict";
