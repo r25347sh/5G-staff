@@ -1,0 +1,5 @@
+[
+  { "id": "reception", "file": "reception.md", "title": "受付マニュアル" },
+  { "id": "service", "file": "service.md", "title": "接客マニュアル" },
+  { "id": "equipment", "file": "equipment.md", "title": "機材マニュアル" }
+]
