@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>シフト確認 | G⁵ Portal</title>
+  <link rel="manifest" href="/5G-staff/manifest.json">
+  <script src="/5G-staff/js/load.js"></script>
+  <link rel="stylesheet" href="/5G-staff/css/shift.css">
+</head>
+<body>
+  <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
+  <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
+  <div class="g5-ambient" id="ambient"></div>
+  <header class="page-header"><h1>シフト確認</h1><p>現在時刻に基づくステータスを自動表示</p></header>
+  <div id="banner-slot" class="banner-slot"></div>
+  <main class="main_section">
+    <div class="shift-controls">
+      <label class="chk-label"><input type="checkbox" id="filter-mine"> 自分のシフトのみ</label>
+      <button type="button" class="btn btn-ghost" id="btn-refresh">更新</button>
+    </div>
+    <div id="shift-list" class="shift-list"></div>
+  </main>
+  <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
+  <script src="/5G-staff/js/common.js"></script>
+  <script src="/5G-staff/js/notif.js"></script>
+  <script src="/5G-staff/src/js/shift.js"></script>
+  <script>document.getElementById("btn-refresh")?.addEventListener("click", () => G5Shift.refresh());</script>
+</body>
+</html>
