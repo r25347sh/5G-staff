@@ -1,18 +1,23 @@
-# 5G-staff
+# G⁵ Portal (5G-staff)
 
-## 仕様書（変更時随時更新）
- - 文化祭の同じクラスの人のみに共有する。
- - 必要であれば、Supabase使用。
- - 必要であれば、LIFFアプリ化。
- - 主な機能は以下の通り
-   - シフトのチェック
-     - 現在の時間を随時参照し、「シフト外」「シフト間近」「シフト中」「シフト終了」の４つのステータスで、個々人のステータスを管理する。
-     - Github TOKENを使い、管理者によるシフト時間等の変更等々可能。
+麗澤高等学校 5年G組 スタッフポータル。
 
-## 現状（随時更新・全ファイルの現状を記述）
+## 機能
+- シフト確認（リアルタイムステータス：外 / 間近 / 中 / 終了）
+- マニュアル動的表示
+- 管理画面（ログイン・シフトCRUD・バナー）
+- PWA対応・通知ベル（間近シフトでバッジ＆通知）
+- デザインは 5g-fest 完全準拠、MENUは radial Echo Bloom 型
 
-## API,TOKEN関係（随時更新）
+## ユーザー
+- admin / teacher / temporary / student（21名ランダム）
+- 詳細は `src/data/users.json`
 
-| 種類 | 内容 |
-| :---: | :---: |
-| アクセストークン | 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 |
+## 技術
+- 静的サイト + GitHub Contents API（暗号化済みPATを実行時復号）
+- CSS分割、共通 style.css + ページ固有
+
+## デプロイ
+GitHub Pages（/5G-staff/ パス想定）
+
+© 2026 Reitaku H.S. 5G
