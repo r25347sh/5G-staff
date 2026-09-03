@@ -1,1 +1,6 @@
-[{"id":"r25347sh","name":"管理者","pass":"kes-2592","role":"admin"},{"id":"temporary1","name":"一時1","pass":"ajrT%b&#hi","role":"temporary"},{"id":"temporary2","name":"一時2","pass":"bR12)njsufnNnsi","role":"temporary"},{"id":"OhaShi","name":"大橋","pass":"5g%&!Butsuri","role":"teacher"}]
+[
+  {"id": "r25347sh", "name": "管理者", "pass": "kes-2592", "role": "admin"},
+  {"id": "temporary1", "name": "一時1", "pass": "ajrT%b&#hi", "role": "temporary"},
+  {"id": "temporary2", "name": "一時2", "pass": "bR12)njsufnNnsi", "role": "temporary"},
+  {"id": "OhaShi", "name": "大橋", "pass": "5g%&!Butsuri", "role": "teacher"}
+]
