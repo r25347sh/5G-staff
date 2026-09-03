@@ -1,0 +1,39 @@
+name: Inline Visual CMS Deploy
+
+on:
+  push:
+    branches: ["main"] # あなたが使っているメインのブランチ名（masterなら変更してね）
+
+# ⚡ 横入りでの強制終了をストップさせ、順番待ちにする魔法のコード
+concurrency:
+  group: "pages-deploy-group"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7 # 最新のv7を使用
+        with:
+          fetch-depth: 1 # ⚡ 過去履歴を無視して爆速化！
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5 # 最新のv5を使用
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3 # 安定のv3を使用
+        with:
+          path: '.' # ⚡ サイト全体を公開（特定のフォルダだけなら './dist' などに書き換え）
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # 安定のv4を使用
