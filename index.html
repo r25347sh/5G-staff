@@ -3,36 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="G⁵ Portal - 5年G組スタッフポータル">
+  <meta name="description" content="G⁵ Portal - 5年G組スタッフポータル。シフト確認・マニュアル・管理。">
   <meta name="theme-color" content="#07050f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>G⁵ Portal</title>
-  <link rel="manifest" href="/5G-staff/manifest.json">
-  <script src="/5G-staff/js/load.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <script src="js/load.js"></script>
 </head>
 <body>
-  <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
-  <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
+  <button id="notif-bell" class="notif-bell" aria-label="通知" title="通知">
+    <span class="bell-icon">🔔</span>
+    <span id="notif-badge" class="notif-badge" hidden>0</span>
+  </button>
+  <div id="notif-panel" class="notif-panel" hidden>
+    <div class="notif-panel-header">通知</div>
+    <ul id="notif-list"></ul>
+  </div>
   <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
   <header class="hero">
     <div class="hero-badge">Reitaku High School · 5G Staff</div>
     <h1><span>STAFF PORTAL</span> G⁵ Portal</h1>
     <p class="hero-sub">5年G組スタッフ専用ポータル。<br>シフト確認・マニュアル・管理をここから。</p>
     <div class="hero-cta">
-      <a href="/5G-staff/shift.html" class="btn btn-primary">シフトを確認</a>
-      <a href="/5G-staff/manual.html" class="btn btn-ghost">マニュアル</a>
+      <a href="shift.html" class="btn btn-primary">シフトを確認</a>
+      <a href="manual.html" class="btn btn-ghost">マニュアル</a>
     </div>
   </header>
   <div id="banner-slot" class="banner-slot"></div>
   <section id="overview" class="main_section">
     <div class="section-header"><h2>機能</h2><p>スタッフ向けの主要機能</p></div>
     <div class="cards-grid">
-      <article class="card"><div class="card-icon">◈</div><h3>シフト確認</h3><p>自分と全体のシフトをリアルタイムで確認。ステータス（外・間近・中・終了）を自動表示。</p><a href="/5G-staff/shift.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
-      <article class="card"><div class="card-icon">◇</div><h3>マニュアル</h3><p>受付・接客・機材などのマニュアルを動的に一覧・閲覧。</p><a href="/5G-staff/manual.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
-      <article class="card"><div class="card-icon">✧</div><h3>管理画面</h3><p>ログイン後、シフトの追加・変更・削除とお知らせバナー設定が可能。</p><a href="/5G-staff/admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
+      <article class="card"><div class="card-icon">◈</div><h3>シフト確認</h3><p>自分と全体のシフトをリアルタイムで確認。ステータス（外・間近・中・終了）を自動表示。</p><a href="shift.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
+      <article class="card"><div class="card-icon">◇</div><h3>マニュアル</h3><p>受付・接客・機材などのマニュアルを動的に一覧・閲覧。</p><a href="manual.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
+      <article class="card"><div class="card-icon">✧</div><h3>管理画面</h3><p>ログイン後、シフトの追加・変更・削除とお知らせバナー設定が可能。</p><a href="admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
     </div>
   </section>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong> · 5年G組スタッフポータル</p><p>© 2026 Reitaku H.S. 5G</p></footer>
-  <script src="/5G-staff/js/common.js"></script>
-  <script src="/5G-staff/js/notif.js"></script>
 </body>
 </html>

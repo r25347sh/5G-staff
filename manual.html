@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07050f">
+  <title>マニュアル | G⁵ Portal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/manual.css">
+</head>
+<body>
+  <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
+  <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
+  <div class="g5-ambient" id="ambient"></div>
+  <header class="page-header"><h1>マニュアル</h1><p>一覧から選択して表示</p></header>
+  <div id="banner-slot" class="banner-slot"></div>
+  <main class="main_section manual-layout">
+    <aside class="manual-nav"><h2>一覧</h2><ul id="manual-list"></ul></aside>
+    <article class="manual-content" id="manual-content"><p class="empty-msg">左の一覧からマニュアルを選択してください</p></article>
+  </main>
+  <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
+  <script src="js/common.js"></script>
+  <script src="js/notif.js"></script>
+  <script src="js/manual.js"></script>
+</body>
+</html>
