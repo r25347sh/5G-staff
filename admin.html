@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07050f">
+  <title>管理 | G⁵ Portal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
+  <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
+  <div class="g5-ambient" id="ambient"></div>
+  <header class="page-header"><h1>管理画面</h1><p>ログインしてシフト・バナーを管理</p></header>
+  <div id="banner-slot" class="banner-slot"></div>
+  <main class="main_section">
+    <section id="login-section" class="admin-card">
+      <h2>ログイン</h2>
+      <form id="login-form">
+        <label>ID <input type="text" id="login-id" required autocomplete="username"></label>
+        <label>パスワード <input type="password" id="login-pass" required autocomplete="current-password"></label>
+        <button type="submit" class="btn btn-primary">ログイン</button>
+      </form>
+      <p id="login-msg" class="msg"></p>
+      <p class="hint-text">admin / teacher / temporary のみ管理可能</p>
+    </section>
+    <section id="admin-panel" hidden>
+      <div class="admin-toolbar">
+        <span id="admin-user-label"></span>
+        <button type="button" class="btn btn-ghost" id="btn-logout">ログアウト</button>
+      </div>
+      <div class="admin-tabs">
+        <button type="button" class="tab active" data-tab="shifts">シフト管理</button>
+        <button type="button" class="tab" data-tab="banner">お知らせバナー</button>
+      </div>
+      <div id="tab-shifts" class="tab-panel">
+        <div class="form-row">
+          <select id="shift-user"></select>
+          <input type="date" id="shift-date">
+          <input type="time" id="shift-start" value="09:00">
+          <input type="time" id="shift-end" value="12:00">
+          <input type="text" id="shift-tanto" placeholder="担当">
+          <button type="button" class="btn btn-primary" id="btn-add-shift">追加</button>
+        </div>
+        <div id="admin-shift-list" class="shift-list"></div>
+        <button type="button" class="btn btn-primary" id="btn-save-shifts" style="margin-top:1rem;">GitHubに保存</button>
+        <p id="shift-save-msg" class="msg"></p>
+      </div>
+      <div id="tab-banner" class="tab-panel" hidden>
+        <label class="chk-label"><input type="checkbox" id="banner-enabled"> 表示する</label>
+        <label>テキスト <input type="text" id="banner-text" style="width:100%"></label>
+        <label>リンク <input type="text" id="banner-link" placeholder="shift.html"></label>
+        <fieldset class="banner-pages">
+          <legend>表示ページ</legend>
+          <label class="chk-label"><input type="checkbox" class="banner-page" value="index" checked> index</label>
+          <label class="chk-label"><input type="checkbox" class="banner-page" value="shift" checked> shift</label>
+          <label class="chk-label"><input type="checkbox" class="banner-page" value="manual" checked> manual</label>
+          <label class="chk-label"><input type="checkbox" class="banner-page" value="admin"> admin</label>
+        </fieldset>
+        <button type="button" class="btn btn-primary" id="btn-save-banner">保存</button>
+        <p id="banner-save-msg" class="msg"></p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
+  <script src="js/common.js"></script>
+  <script src="js/notif.js"></script>
+  <script src="src/js/shift.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
