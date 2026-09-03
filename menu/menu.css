@@ -1,48 +1,215 @@
-/* Echo Bloom radial MENU */
-.eb-stage {
-  position: fixed; inset: 0; z-index: 9000; pointer-events: none;
-  --x: 50%; --y: 50%;
+/* ==============================================
+   G⁵ Portal Radial Menu — asobiseminar system
+   Design: 5G-staff (pink / cyan / gold / deep)
+   ============================================== */
+
+:root {
+  --rm-font: 'Noto Sans JP', system-ui, sans-serif;
+  --rm-item-bg: linear-gradient(145deg, rgba(22, 14, 36, 0.94), rgba(12, 8, 22, 0.92));
+  --rm-item-hover-bg: linear-gradient(135deg, #ff2d95, #ff6bb5);
+  --rm-parent-bg: linear-gradient(145deg, rgba(155, 93, 229, 0.22), rgba(16, 11, 26, 0.95));
+  --rm-border: rgba(255, 45, 149, 0.38);
+  --rm-border-hover: #ff2d95;
+  --rm-text: #f5f0ff;
+  --rm-orbit: rgba(255, 45, 149, 0.22);
+  --rm-core-bg: linear-gradient(135deg, #ff2d95, #9b5de5);
+  --rm-label-bg: linear-gradient(135deg, rgba(7, 5, 15, 0.94), rgba(16, 11, 26, 0.92));
+  --rm-label-border: rgba(255, 215, 0, 0.45);
+  --rm-item-size: 58px;
+  --rm-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --rm-z: 9999999;
 }
-.eb-stage.open { pointer-events: auto; }
-.eb-veil {
-  position: absolute; inset: 0; background: rgba(7, 5, 15, 0.72);
-  opacity: 0; transition: opacity 0.3s;
+
+.radial-menu-wrapper {
+  position: fixed;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  z-index: var(--rm-z);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: visibility 0s linear 0.28s, opacity 0.18s ease-out;
 }
-.eb-stage.open .eb-veil { opacity: 1; }
-.eb-core {
-  position: absolute; left: var(--x); top: var(--y);
-  width: 56px; height: 56px; margin: -28px 0 0 -28px;
-  border-radius: 50%; background: linear-gradient(135deg, #ff2d95, #9b5de5);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 700; font-size: 0.85rem;
-  box-shadow: 0 0 24px rgba(255, 45, 149, 0.5);
-  opacity: 0; transform: scale(0.5); transition: opacity 0.25s, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1);
+.radial-menu-wrapper.active {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0s linear 0s, opacity 0.12s ease-in;
 }
-.eb-stage.open .eb-core { opacity: 1; transform: scale(1); }
-.eb-item {
-  position: absolute; left: var(--x); top: var(--y);
-  width: 72px; height: 72px; margin: -36px 0 0 -36px;
-  border-radius: 50%; background: rgba(16, 11, 26, 0.95);
-  border: 1px solid rgba(255, 45, 149, 0.35);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: #f5f0ff; text-decoration: none; font-size: 0.7rem;
-  opacity: 0; transform: translate(0, 0) scale(0.5);
-  transition: transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.25s;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+.rm-canvas-layer {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
 }
-.eb-item:hover { border-color: #ff2d95; color: #ff2d95; }
-.eb-item-icon { font-size: 1.1rem; margin-bottom: 0.15rem; }
-.eb-hint {
-  position: absolute; left: 50%; bottom: 1.5rem; transform: translateX(-50%);
-  color: rgba(245, 240, 255, 0.5); font-size: 0.8rem; opacity: 0;
+
+.rm-shell-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed var(--rm-orbit);
+  box-shadow: 0 0 24px rgba(255, 45, 149, 0.12);
+  pointer-events: none;
+  z-index: 2;
+  transform: scale(0.15) rotate(-90deg);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: transform 0.6s var(--rm-ease), opacity 0.35s ease;
 }
-.eb-stage.open .eb-hint { opacity: 1; }
-.eb-tip {
-  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-  background: rgba(16, 11, 26, 0.95); border: 1px solid rgba(255, 45, 149, 0.3);
-  padding: 0.6rem 1.1rem; border-radius: 12px; font-size: 0.85rem;
-  color: rgba(245, 240, 255, 0.8); z-index: 8000;
-  opacity: 0; transition: opacity 0.4s; pointer-events: none;
+.radial-menu-wrapper.active .rm-shell-orbit {
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+  animation: orbitPulse 12s linear infinite;
 }
-.eb-tip.show { opacity: 1; }
-.eb-tip.hide { opacity: 0; }
+@keyframes orbitPulse {
+  0%   { transform: scale(1) rotate(0deg); }
+  50%  { transform: scale(1.02) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.rm-core-btn {
+  position: absolute;
+  width: 50px; height: 50px;
+  margin-top: -25px; margin-left: -25px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: var(--rm-core-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow:
+    0 0 28px rgba(255, 45, 149, 0.5),
+    inset 0 0 14px rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0) rotate(-180deg);
+  will-change: transform, opacity;
+  transition: transform 0.45s var(--rm-ease), opacity 0.22s ease;
+}
+.rm-core-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) rotate(0deg);
+}
+.rm-core-btn:hover {
+  transform: scale(1.2) rotate(90deg) !important;
+  box-shadow:
+    0 0 36px rgba(0, 245, 255, 0.55),
+    inset 0 0 18px rgba(255, 255, 255, 0.3);
+}
+
+.rm-item {
+  position: absolute;
+  width: var(--rm-item-size);
+  height: var(--rm-item-size);
+  margin-top: calc(-1 * var(--rm-item-size) / 2);
+  margin-left: calc(-1 * var(--rm-item-size) / 2);
+  border-radius: 50%;
+  border: 2px solid var(--rm-border);
+  background: var(--rm-item-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--rm-text);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0) scale(0) rotate(-140deg);
+  will-change: transform, opacity;
+  transition:
+    transform 0.5s var(--rm-ease),
+    opacity 0.28s ease,
+    border-color 0.2s,
+    box-shadow 0.25s,
+    background 0.25s;
+}
+.radial-menu-wrapper.active .rm-item.rendered {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(var(--x), var(--y), 0) scale(1) rotate(0deg);
+}
+.rm-item:hover,
+.rm-item:active {
+  background: var(--rm-item-hover-bg) !important;
+  border-color: var(--rm-border-hover);
+  color: #fff;
+  transform: translate3d(var(--x), var(--y), 0) scale(1.24) rotate(0deg) !important;
+  box-shadow:
+    0 0 32px rgba(255, 45, 149, 0.55),
+    0 0 16px rgba(0, 245, 255, 0.25),
+    inset 0 0 12px rgba(255, 255, 255, 0.25);
+  z-index: 5;
+}
+.rm-item.has-sub {
+  background: var(--rm-parent-bg);
+  border-color: rgba(155, 93, 229, 0.5);
+  box-shadow: 0 0 18px rgba(155, 93, 229, 0.25), 0 10px 28px rgba(0, 0, 0, 0.3);
+}
+
+.rm-item::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -34px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px) scale(0.7);
+  background: var(--rm-label-bg);
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--rm-label-border);
+  font-family: var(--rm-font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: transform 0.35s var(--rm-ease), opacity 0.22s ease;
+}
+.radial-menu-wrapper.active .rm-item.rendered::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* FAB — asobiseminar system, 5G colors */
+.menu-fab {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.4rem;
+  z-index: 99990;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  font-size: 1.45rem;
+  background: linear-gradient(145deg, #ff2d95, #9b5de5);
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(255, 45, 149, 0.45);
+  animation: fab-pulse 2.6s ease-in-out infinite;
+  transition: transform 0.25s var(--rm-ease);
+}
+.menu-fab:hover {
+  transform: scale(1.08) rotate(8deg);
+}
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 12px 32px rgba(255, 45, 149, 0.45); }
+  50% { box-shadow: 0 12px 40px rgba(255, 45, 149, 0.7), 0 0 0 12px rgba(255, 45, 149, 0.1); }
+}
