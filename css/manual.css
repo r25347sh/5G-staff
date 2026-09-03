@@ -1,0 +1,18 @@
+/* manual.html — page-specific */
+
+.main_section.manual-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.manual-content .empty-msg {
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.md-body {
+  animation: panel-in 0.35s var(--ease-out);
+}

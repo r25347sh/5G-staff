@@ -1,0 +1,84 @@
+/* admin.html — management UI */
+
+.main_section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+#admin-panel {
+  animation: panel-in 0.4s var(--ease-out);
+}
+
+.admin-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-card .btn-primary {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+#admin-shift-list {
+  margin-top: 0.5rem;
+}
+
+#admin-shift-list .shift-card {
+  position: relative;
+}
+
+#admin-shift-list .btn-del {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.65rem;
+  opacity: 0.7;
+}
+#admin-shift-list .shift-card:hover .btn-del {
+  opacity: 1;
+}
+
+#btn-save-shifts,
+#btn-save-banner {
+  min-width: 160px;
+}
+
+.tab-panel {
+  animation: panel-in 0.25s var(--ease-out);
+}
+
+.form-row select:focus,
+.form-row input:focus {
+  outline: none;
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(255, 45, 149, 0.15);
+}
+
+#tab-banner label {
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+#tab-banner input[type="text"] {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.7rem 0.9rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+#tab-banner input[type="checkbox"] {
+  accent-color: var(--pink);
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}

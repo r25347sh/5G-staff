@@ -1,0 +1,22 @@
+/* index.html — hero & overview polish */
+
+.hero {
+  padding-bottom: 2rem;
+}
+
+.cards-grid .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.cards-grid .card .btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.hero-cta .btn-primary {
+  box-shadow: 0 4px 24px rgba(255, 45, 149, 0.3);
+}
+.hero-cta .btn-primary:hover {
+  box-shadow: 0 6px 32px rgba(255, 45, 149, 0.45);
+}
