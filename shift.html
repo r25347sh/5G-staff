@@ -3,28 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07050f">
   <title>シフト確認 | G⁵ Portal</title>
-  <link rel="manifest" href="/5G-staff/manifest.json">
-  <script src="/5G-staff/js/load.js"></script>
-  <link rel="stylesheet" href="/5G-staff/css/shift.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/shift.css">
 </head>
 <body>
   <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
   <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
-  <div class="g5-ambient" id="ambient"></div>
-  <header class="page-header"><h1>シフト確認</h1><p>現在時刻に基づくステータスを自動表示</p></header>
+  <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
+  <header class="page-header"><h1>シフト確認</h1><p>現在時刻に基づくステータスを自動表示します</p></header>
   <div id="banner-slot" class="banner-slot"></div>
   <main class="main_section">
     <div class="shift-controls">
-      <label class="chk-label"><input type="checkbox" id="filter-mine"> 自分のシフトのみ</label>
-      <button type="button" class="btn btn-ghost" id="btn-refresh">更新</button>
+      <div class="shift-controls-left">
+        <label class="chk-label"><input type="checkbox" id="filter-mine"> 自分のシフトのみ</label>
+        <span id="session-label" class="session-label"></span>
+      </div>
+      <div class="shift-controls-right">
+        <button type="button" class="btn btn-ghost" id="btn-login-toggle" style="font-size:0.85rem;padding:0.5rem 1rem;">ログイン</button>
+        <button type="button" class="btn btn-ghost" id="btn-refresh" style="font-size:0.85rem;padding:0.5rem 1rem;">更新</button>
+      </div>
+    </div>
+    <div id="shift-login-box" class="admin-card shift-login-box" hidden>
+      <h2 style="font-size:1.1rem;margin-bottom:0.8rem;">スタッフログイン</h2>
+      <form id="shift-login-form">
+        <label>ID <input type="text" id="shift-login-id" required autocomplete="username"></label>
+        <label>パスワード <input type="password" id="shift-login-pass" required autocomplete="current-password"></label>
+        <button type="submit" class="btn btn-primary">ログイン</button>
+      </form>
+      <p id="shift-login-msg" class="msg"></p>
     </div>
     <div id="shift-list" class="shift-list"></div>
   </main>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
-  <script src="/5G-staff/js/common.js"></script>
-  <script src="/5G-staff/js/notif.js"></script>
-  <script src="/5G-staff/src/js/shift.js"></script>
-  <script>document.getElementById("btn-refresh")?.addEventListener("click", () => G5Shift.refresh());</script>
+  <script src="js/common.js"></script>
+  <script src="js/notif.js"></script>
+  <script src="src/js/shift.js"></script>
+  <script>
+  (function () {
+    function updateSessionUI() {
+      const s = window.G5 && G5.getSession();
+      const label = document.getElementById("session-label");
+      const btn = document.getElementById("btn-login-toggle");
+      const box = document.getElementById("shift-login-box");
+      if (s) {
+        if (label) label.textContent = (s.name || s.id) + " でログイン中";
+        if (btn) btn.textContent = "ログアウト";
+        if (box) box.hidden = true;
+      } else {
+        if (label) label.textContent = "";
+        if (btn) btn.textContent = "ログイン";
+      }
+    }
+    document.getElementById("btn-refresh")?.addEventListener("click", function () {
+      if (window.G5Shift) G5Shift.refresh();
+    });
+    document.getElementById("btn-login-toggle")?.addEventListener("click", function () {
+      const s = window.G5 && G5.getSession();
+      if (s) { G5.clearSession(); updateSessionUI(); if (window.G5Shift) G5Shift.refresh(); return; }
+      const box = document.getElementById("shift-login-box");
+      if (box) box.hidden = !box.hidden;
+    });
+    document.getElementById("shift-login-form")?.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const id = document.getElementById("shift-login-id").value.trim();
+      const pass = document.getElementById("shift-login-pass").value;
+      const msg = document.getElementById("shift-login-msg");
+      try {
+        const BASE = (window.G5 && G5.BASE) || ".";
+        const users = await (await fetch(BASE + "/src/data/users.json?t=" + Date.now())).json();
+        const u = users.find(function (x) { return x.id === id && x.pass === pass; });
+        if (!u) { msg.textContent = "IDまたはパスワードが違います"; msg.classList.add("error"); return; }
+        G5.setSession({ id: u.id, name: u.name, role: u.role });
+        msg.textContent = "ログインしました"; msg.classList.remove("error");
+        updateSessionUI();
+        if (window.G5Shift) G5Shift.refresh();
+      } catch (err) { msg.textContent = "エラー: " + err.message; msg.classList.add("error"); }
+    });
+    document.addEventListener("DOMContentLoaded", updateSessionUI);
+    setTimeout(updateSessionUI, 300);
+  })();
+  </script>
 </body>
 </html>
