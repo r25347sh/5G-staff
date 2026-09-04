@@ -7,6 +7,8 @@
   <title>管理 | G⁵ Portal</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="js/load.js"></script>
   <link rel="stylesheet" href="css/admin.css">
 </head>
@@ -14,7 +16,7 @@
   <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
   <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
   <div class="g5-ambient" id="ambient"></div>
-  <header class="page-header"><h1>管理画面</h1><p>ログインしてシフト・バナーを管理</p></header>
+  <header class="page-header"><h1>管理画面</h1><p>9/12 シフト・急募・エクスポート</p></header>
   <div id="banner-slot" class="banner-slot"></div>
   <main class="main_section">
     <section id="login-section" class="admin-card">
@@ -27,28 +29,133 @@
       <p id="login-msg" class="msg"></p>
       <p class="hint-text">admin / teacher / temporary のみ管理可能</p>
     </section>
+
     <section id="admin-panel" hidden>
       <div class="admin-toolbar">
         <span id="admin-user-label"></span>
+        <button type="button" class="btn btn-ghost" id="btn-set-token" title="GitHub PAT">🔑</button>
         <button type="button" class="btn btn-ghost" id="btn-logout">ログアウト</button>
       </div>
+
       <div class="admin-tabs">
-        <button type="button" class="tab active" data-tab="shifts">シフト管理</button>
-        <button type="button" class="tab" data-tab="banner">お知らせバナー</button>
+        <button type="button" class="tab active" data-tab="shifts">個別登録</button>
+        <button type="button" class="tab" data-tab="bulk">一括登録</button>
+        <button type="button" class="tab" data-tab="urgent">急募</button>
+        <button type="button" class="tab" data-tab="export">出力</button>
+        <button type="button" class="tab" data-tab="banner">バナー</button>
       </div>
+
       <div id="tab-shifts" class="tab-panel">
-        <div class="form-row">
-          <select id="shift-user"></select>
-          <input type="date" id="shift-date">
-          <input type="time" id="shift-start" value="09:00">
-          <input type="time" id="shift-end" value="12:00">
-          <input type="text" id="shift-tanto" placeholder="担当">
+        <p class="hint-text">日付は <strong>9/12 固定</strong>。時間と担当・役割のみ設定。</p>
+        <div class="form-row form-row-wrap">
+          <label class="field">
+            <span>担当者</span>
+            <select id="shift-user"></select>
+          </label>
+          <label class="field">
+            <span>開始</span>
+            <input type="time" id="shift-start" value="09:00">
+          </label>
+          <label class="field">
+            <span>終了</span>
+            <input type="time" id="shift-end" value="12:00">
+          </label>
+          <label class="field">
+            <span>役割</span>
+            <select id="shift-tanto"></select>
+          </label>
           <button type="button" class="btn btn-primary" id="btn-add-shift">追加</button>
         </div>
+        <div class="preset-row">
+          <span class="preset-label">時間プリセット:</span>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="09:00-12:00" data-target-start="shift-start" data-target-end="shift-end">午前</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="12:00-15:00" data-target-start="shift-start" data-target-end="shift-end">昼</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="15:00-18:00" data-target-start="shift-start" data-target-end="shift-end">午後</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="10:00-16:00" data-target-start="shift-start" data-target-end="shift-end">通し</button>
+        </div>
         <div id="admin-shift-list" class="shift-list"></div>
-        <button type="button" class="btn btn-primary" id="btn-save-shifts" style="margin-top:1rem;">GitHubに保存</button>
-        <p id="shift-save-msg" class="msg"></p>
+        <div class="save-row">
+          <button type="button" class="btn btn-primary" id="btn-save-shifts">GitHubに保存</button>
+          <p id="shift-save-msg" class="msg"></p>
+        </div>
       </div>
+
+      <div id="tab-bulk" class="tab-panel" hidden>
+        <p class="hint-text">同じ時間帯に複数人を一括登録（9/12）。</p>
+        <div class="form-row form-row-wrap">
+          <label class="field">
+            <span>開始</span>
+            <input type="time" id="bulk-start" value="09:00">
+          </label>
+          <label class="field">
+            <span>終了</span>
+            <input type="time" id="bulk-end" value="12:00">
+          </label>
+          <label class="field">
+            <span>役割</span>
+            <select id="bulk-tanto"></select>
+          </label>
+        </div>
+        <div class="preset-row">
+          <span class="preset-label">時間プリセット:</span>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="09:00-12:00" data-target-start="bulk-start" data-target-end="bulk-end">午前</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="12:00-15:00" data-target-start="bulk-start" data-target-end="bulk-end">昼</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="15:00-18:00" data-target-start="bulk-start" data-target-end="bulk-end">午後</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-preset="10:00-16:00" data-target-start="bulk-start" data-target-end="bulk-end">通し</button>
+        </div>
+        <div class="bulk-users-box">
+          <p class="field-label">メンバーを選択（複数可）</p>
+          <div id="bulk-users" class="bulk-users-grid"></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-bulk-add">選択した人を一括追加</button>
+        <p class="hint-text" style="margin-top:0.8rem">追加後、「個別登録」タブから GitHubに保存 してください。</p>
+      </div>
+
+      <div id="tab-urgent" class="tab-panel" hidden>
+        <p class="hint-text">来場者増時の緊急枠。対象・人数を指定できます。定員到達で急募終了通知。</p>
+        <div class="form-row form-row-wrap">
+          <label class="field">
+            <span>開始</span>
+            <input type="time" id="urgent-start" value="13:00">
+          </label>
+          <label class="field">
+            <span>終了</span>
+            <input type="time" id="urgent-end" value="17:00">
+          </label>
+          <label class="field">
+            <span>必要役割</span>
+            <select id="urgent-tanto"></select>
+          </label>
+          <label class="field">
+            <span>必要人数</span>
+            <input type="number" id="urgent-slots" min="1" max="50" value="1" style="width:5rem">
+          </label>
+        </div>
+        <div class="urgent-scope-box" style="margin:0.75rem 0">
+          <p class="field-label">送信対象</p>
+          <label class="chk-label"><input type="radio" name="urgent-scope" value="all" checked> 全員</label>
+          <label class="chk-label"><input type="radio" name="urgent-scope" value="selected"> 特定の人を選ぶ</label>
+        </div>
+        <div id="urgent-targets-box" class="bulk-users-box" hidden>
+          <p class="field-label">対象メンバー</p>
+          <div id="urgent-targets" class="bulk-users-grid"></div>
+        </div>
+        <label class="field" style="display:block;margin-bottom:1rem">
+          <span>メモ（任意）</span>
+          <input type="text" id="urgent-note" placeholder="例: 受付増員希望" style="width:100%;margin-top:0.35rem">
+        </label>
+        <button type="button" class="btn btn-primary btn-urgent" id="btn-urgent-post">⚡ 急募枠を投稿</button>
+        <p class="hint-text" style="margin-top:0.8rem">投稿後、GitHubに保存すると対象者のシフト画面に表示されます。</p>
+      </div>
+
+      <div id="tab-export" class="tab-panel" hidden>
+        <p class="hint-text">9/12 シフトデータを CSV / PDF で出力。</p>
+        <div class="export-actions">
+          <button type="button" class="btn btn-primary" id="btn-export-csv">CSV ダウンロード</button>
+          <button type="button" class="btn btn-primary" id="btn-export-pdf">PDF（印刷）</button>
+        </div>
+      </div>
+
       <div id="tab-banner" class="tab-panel" hidden>
         <label class="chk-label"><input type="checkbox" id="banner-enabled"> 表示する</label>
         <label>テキスト <input type="text" id="banner-text" style="width:100%"></label>

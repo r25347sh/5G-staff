@@ -3,34 +3,36 @@
 麗澤高等学校 5年G組 スタッフポータル。
 
 ## 機能
-- **シフト確認** … リアルタイムステータス（シフト外 / 間近 / 中 / 終了）＋ログインで「自分のシフトのみ」
-- **マニュアル** … `src/data/manuals.json` 経由で md を動的一覧・表示
-- **管理画面** … admin/teacher/temporary ログイン後、シフト CRUD（追加・編集・削除）＋バナー（ページ選択可）を GitHub に保存
-- **PWA** … manifest + Service Worker
-- **通知ベル** … シフト間近のバッジ・通知
-- **MENU** … 空白クリックで radial Echo Bloom 型
-- デザインは **5g-fest** 準拠
+
+- **シフト確認** … **9/12 固定**（時間のみ設定）。ステータス（外 / 間近10分前 / 中 / 終了）
+- **一括登録** … 同じ時間帯に複数人を一括追加
+- **役割** … 受付 / 総務 / ブラックジャック / ポーカー / チンチロ / 大富豪
+- **急募** … 全員 / 特定複数人向け。人数指定。定員到達で急募終了通知（サイト内＋プッシュ）
+- **通知** … シフト開始 **10分前** にサイト内通知＋プッシュ通知
+- **CSV / PDF エクスポート**
+- **マニュアル / バナー / PWA / MENU**
 
 ## ページ
+
 | ファイル | 内容 |
 |----------|------|
 | `index.html` | トップ |
-| `shift.html` | シフト一覧・ログイン・ステータス |
+| `shift.html` | シフト一覧・急募応募 |
 | `manual.html` | マニュアル |
-| `admin.html` | 管理 |
+| `admin.html` | 管理（個別 / 一括 / 急募 / 出力 / バナー） |
 
 ## データ
+
 - `src/data/shift.json`
 - `src/data/users.json`
 - `src/data/banner.json`
-- `src/data/manuals.json` + `src/data/manual/*.md`
 
 ## ユーザー（初期）
+
 - `r25347sh` / `kes-2592` (admin)
-- `temporary1` / `ajrT%b&#hi` (temporary)
-- `temporary2` / `bR12)njsufnNnsi` (temporary)
 
 ## デプロイ
-GitHub Pages。相対パス対応済み。
+
+GitHub Pages。
 
 © 2026 Reitaku H.S. 5G

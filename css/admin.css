@@ -1,7 +1,7 @@
 /* admin.html — management UI */
 
 .main_section {
-  max-width: 960px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 0.5rem 1.5rem 4rem;
   position: relative;
@@ -23,33 +23,85 @@
   width: 100%;
 }
 
-#admin-shift-list {
-  margin-top: 0.5rem;
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-#admin-shift-list .shift-card {
-  position: relative;
+#admin-user-label {
+  color: var(--cyan);
+  font-size: 0.95rem;
 }
 
-#admin-shift-list .btn-del {
-  position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
-  font-size: 0.75rem;
-  padding: 0.3rem 0.65rem;
-  opacity: 0.7;
-}
-#admin-shift-list .shift-card:hover .btn-del {
-  opacity: 1;
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
 }
 
-#btn-save-shifts,
-#btn-save-banner {
-  min-width: 160px;
+.admin-tabs .tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.admin-tabs .tab:hover {
+  color: var(--text);
+}
+
+.admin-tabs .tab.active {
+  color: var(--pink);
+  border-color: var(--border);
+  border-bottom-color: transparent;
+  background: rgba(255, 45, 149, 0.08);
 }
 
 .tab-panel {
   animation: panel-in 0.25s var(--ease-out);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.form-row-wrap .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 120px;
+}
+
+.form-row-wrap .field span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.form-row select,
+.form-row input[type="time"],
+.form-row input[type="text"],
+.form-row input[type="date"] {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  min-width: 110px;
 }
 
 .form-row select:focus,
@@ -59,12 +111,136 @@
   box-shadow: 0 0 0 3px rgba(255, 45, 149, 0.15);
 }
 
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-bottom: 0.4rem;
+}
+
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.preset-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.btn-sm {
+  font-size: 0.78rem !important;
+  padding: 0.3rem 0.7rem !important;
+}
+
+.bulk-users-box {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.bulk-users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.35rem 0.75rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.bulk-user-item {
+  font-size: 0.88rem;
+}
+
+#admin-shift-list {
+  margin-top: 0.75rem;
+}
+
+.admin-day-group {
+  margin-bottom: 1.5rem;
+}
+
+.admin-day-title {
+  font-size: 0.95rem;
+  margin-bottom: 0.55rem;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 45, 149, 0.2);
+  padding-bottom: 0.3rem;
+}
+
+.admin-day-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+#admin-shift-list .shift-card {
+  position: relative;
+  padding: 1rem 1.1rem;
+}
+
+#admin-shift-list .shift-card.is-urgent {
+  border-color: rgba(255, 107, 53, 0.5);
+}
+
+.card-actions {
+  margin-top: 0.55rem;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.card-actions .btn {
+  font-size: 0.75rem;
+  padding: 0.28rem 0.55rem;
+}
+
+.save-row {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#btn-save-shifts,
+#btn-save-banner {
+  min-width: 160px;
+}
+
+.btn-urgent {
+  background: linear-gradient(105deg, #ff6b35, var(--pink)) !important;
+  border: none;
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.export-actions .btn {
+  min-width: 160px;
+}
+
 #tab-banner label {
   display: block;
   margin-bottom: 1rem;
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
 #tab-banner input[type="text"] {
   width: 100%;
   margin-top: 0.35rem;
@@ -75,10 +251,53 @@
   color: var(--text);
   font-size: 0.95rem;
 }
+
 #tab-banner input[type="checkbox"] {
   accent-color: var(--pink);
   width: 1.15rem;
   height: 1.15rem;
   margin-right: 0.4rem;
   vertical-align: middle;
+}
+
+.banner-pages {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.banner-pages legend {
+  padding: 0 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.hint-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0.85rem;
+}
+
+.msg {
+  font-size: 0.88rem;
+  margin-top: 0.4rem;
+}
+
+.msg.error {
+  color: #ff6b8a;
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 640px) {
+  .form-row-wrap .field {
+    min-width: calc(50% - 0.4rem);
+  }
+  .bulk-users-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

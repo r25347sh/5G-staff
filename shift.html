@@ -7,6 +7,8 @@
   <title>シフト確認 | G⁵ Portal</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="js/load.js"></script>
   <link rel="stylesheet" href="css/shift.css">
 </head>
@@ -14,7 +16,7 @@
   <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
   <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
   <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
-  <header class="page-header"><h1>シフト確認</h1><p>現在時刻に基づくステータスを自動表示します</p></header>
+  <header class="page-header"><h1>シフト確認</h1><p>9/12 のシフト・急募（開始10分前に通知）</p></header>
   <div id="banner-slot" class="banner-slot"></div>
   <main class="main_section">
     <div class="shift-controls">
@@ -36,6 +38,13 @@
       </form>
       <p id="shift-login-msg" class="msg"></p>
     </div>
+    <div class="legend-row">
+      <span class="leg leg-active">シフト中</span>
+      <span class="leg leg-near">間近（10分前）</span>
+      <span class="leg leg-urgent">急募</span>
+      <span class="leg leg-open">募集</span>
+      <span class="leg leg-done">終了</span>
+    </div>
     <div id="shift-list" class="shift-list"></div>
   </main>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
@@ -45,10 +54,10 @@
   <script>
   (function () {
     function updateSessionUI() {
-      const s = window.G5 && G5.getSession();
-      const label = document.getElementById("session-label");
-      const btn = document.getElementById("btn-login-toggle");
-      const box = document.getElementById("shift-login-box");
+      var s = window.G5 && G5.getSession();
+      var label = document.getElementById("session-label");
+      var btn = document.getElementById("btn-login-toggle");
+      var box = document.getElementById("shift-login-box");
       if (s) {
         if (label) label.textContent = (s.name || s.id) + " でログイン中";
         if (btn) btn.textContent = "ログアウト";
@@ -58,29 +67,30 @@
         if (btn) btn.textContent = "ログイン";
       }
     }
-    document.getElementById("btn-refresh")?.addEventListener("click", function () {
+    document.getElementById("btn-refresh") && document.getElementById("btn-refresh").addEventListener("click", function () {
       if (window.G5Shift) G5Shift.refresh();
     });
-    document.getElementById("btn-login-toggle")?.addEventListener("click", function () {
-      const s = window.G5 && G5.getSession();
+    document.getElementById("btn-login-toggle") && document.getElementById("btn-login-toggle").addEventListener("click", function () {
+      var s = window.G5 && G5.getSession();
       if (s) { G5.clearSession(); updateSessionUI(); if (window.G5Shift) G5Shift.refresh(); return; }
-      const box = document.getElementById("shift-login-box");
+      var box = document.getElementById("shift-login-box");
       if (box) box.hidden = !box.hidden;
     });
-    document.getElementById("shift-login-form")?.addEventListener("submit", async function (e) {
+    document.getElementById("shift-login-form") && document.getElementById("shift-login-form").addEventListener("submit", async function (e) {
       e.preventDefault();
-      const id = document.getElementById("shift-login-id").value.trim();
-      const pass = document.getElementById("shift-login-pass").value;
-      const msg = document.getElementById("shift-login-msg");
+      var id = document.getElementById("shift-login-id").value.trim();
+      var pass = document.getElementById("shift-login-pass").value;
+      var msg = document.getElementById("shift-login-msg");
       try {
-        const BASE = (window.G5 && G5.BASE) || ".";
-        const users = await (await fetch(BASE + "/src/data/users.json?t=" + Date.now())).json();
-        const u = users.find(function (x) { return x.id === id && x.pass === pass; });
+        var BASE = (window.G5 && G5.BASE) || ".";
+        var users = await (await fetch(BASE + "/src/data/users.json?t=" + Date.now())).json();
+        var u = users.find(function (x) { return x.id === id && x.pass === pass; });
         if (!u) { msg.textContent = "IDまたはパスワードが違います"; msg.classList.add("error"); return; }
         G5.setSession({ id: u.id, name: u.name, role: u.role });
         msg.textContent = "ログインしました"; msg.classList.remove("error");
         updateSessionUI();
         if (window.G5Shift) G5Shift.refresh();
+        if (window.G5Notif) G5Notif.requestPermission();
       } catch (err) { msg.textContent = "エラー: " + err.message; msg.classList.add("error"); }
     });
     document.addEventListener("DOMContentLoaded", updateSessionUI);

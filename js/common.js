@@ -58,7 +58,11 @@
   };
   G5.clearSession = function () { sessionStorage.removeItem("g5_session"); };
   G5.getToken = function () {
-    return "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";
+    try {
+      var t = localStorage.getItem("g5_gh_token");
+      if (t) return t;
+    } catch (e) {}
+    return "";
   };
   function boot() { initAmbient(); loadBanner(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
