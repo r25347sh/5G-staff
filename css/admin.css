@@ -386,3 +386,40 @@
 .save-row .msg.error {
   color: #ff6b8a;
 }
+
+/* QR login */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.qr-login-actions {
+  margin-bottom: 0.5rem;
+}
+.qr-scan-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 45, 149, 0.28);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.qr-scan-box video {
+  width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  background: #000;
+  object-fit: cover;
+}
+.qr-scan-box .btn-sm {
+  margin-top: 0.5rem;
+}

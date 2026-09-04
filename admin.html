@@ -26,6 +26,17 @@
         <label>パスワード <input type="password" id="login-pass" required autocomplete="current-password"></label>
         <button type="submit" class="btn btn-primary">ログイン</button>
       </form>
+      <div class="login-divider"><span>または</span></div>
+      <div class="qr-login-actions">
+        <button type="button" class="btn btn-ghost" id="btn-qr-start">📷 QRコードでログイン</button>
+      </div>
+      <div id="qr-scan-box" class="qr-scan-box" hidden>
+        <video id="qr-video" playsinline muted></video>
+        <canvas id="qr-canvas" hidden></canvas>
+        <p id="qr-scan-msg" class="msg"></p>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-stop">カメラ停止</button>
+        <p class="hint-text">QR内容例: {"id":"r25347sh","pass":"..."}</p>
+      </div>
       <p id="login-msg" class="msg"></p>
       <p class="hint-text">admin / teacher / temporary のみ管理可能</p>
     </section>
@@ -176,6 +187,7 @@
   <script src="js/common.js"></script>
   <script src="js/notif.js"></script>
   <script src="src/js/shift.js"></script>
+  <script src="js/qr-login.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

@@ -70,22 +70,15 @@
     var pass = document.getElementById("login-pass").value;
     var msg = document.getElementById("login-msg");
     try {
-      var users = await (await fetch(BASE + "/src/data/users.json?t=" + Date.now())).json();
-      var u = users.find(function (x) {
-        return x.id === id && x.pass === pass;
-      });
-      if (!u) {
-        showMsg(msg, "IDまたはパスワードが違います", true);
-        return;
-      }
+      var u = await G5.loginWithCredentials(id, pass);
       if (ALLOWED.indexOf(u.role) === -1) {
+        G5.clearSession();
         showMsg(msg, "管理権限がありません", true);
         return;
       }
-      G5.setSession({ id: u.id, name: u.name, role: u.role });
       enterAdmin(u);
     } catch (err) {
-      showMsg(msg, "エラー: " + err.message, true);
+      showMsg(msg, err.message || String(err), true);
     }
   }
 
@@ -572,6 +565,16 @@
   document.addEventListener("DOMContentLoaded", function () {
     var sess = G5.getSession();
     if (sess && ALLOWED.indexOf(sess.role) !== -1) enterAdmin(sess);
+
+        window.__g5_onLoginSuccess = function (u) {
+      if (!u) u = G5.getSession();
+      if (!u || ALLOWED.indexOf(u.role) === -1) {
+        showMsg(document.getElementById("login-msg"), "管理権限がありません", true);
+        G5.clearSession();
+        return;
+      }
+      enterAdmin(u);
+    };
 
     document.getElementById("login-form").addEventListener("submit", doLogin);
     document.getElementById("btn-logout").addEventListener("click", function () {
