@@ -22,7 +22,7 @@
   var editIndex = -1;
 
   async function apiPut(path, content, message) {
-    var token = G5.getToken();
+    var token = (G5.loadTokenAsync ? await G5.loadTokenAsync() : G5.getToken());
     if (!token) throw new Error("token unavailable");
     var url =
       "https://api.github.com/repos/" +
@@ -197,9 +197,8 @@
     }
 
     var html =
-      '<div class="admin-day-group"><h3 class="admin-day-title">9/12 <span class="day-count">' +
-      sorted.length +
-      "件</span></h3><div class=\"admin-day-cards\">";
+      '<div class="shift-table-wrap admin-table-wrap"><table class="shift-table admin-shift-table"><thead><tr>' +
+      '<th>時間</th><th>担当</th><th>役割</th><th>状態</th><th>メモ</th><th></th></tr></thead><tbody>';
 
     sorted.forEach(function (s) {
       var i = shiftsCache.indexOf(s);
@@ -208,43 +207,54 @@
       var needed = s.slots_needed || 1;
       var name;
       if (isOpen) {
-        name =
-          (s.urgent ? "⚡急募" : "募集") +
-          " " +
-          filled +
-          "/" +
-          needed;
+        name = (s.urgent ? "⚡急募" : "募集") + " " + filled + "/" + needed;
       } else {
         name = (map[s.user_id] || {}).name || s.user_id;
       }
+      var st = s.urgent && isOpen ? "急募中" : isOpen ? "募集中" : "確定";
+      var note = s.note || "";
+      if (isOpen && s.target && s.target !== "all") {
+        var tn = (Array.isArray(s.target) ? s.target : [s.target])
+          .map(function (id) {
+            return (map[id] || {}).name || id;
+          })
+          .join(", ");
+        note = (note ? note + " / " : "") + "対象:" + tn;
+      }
       var urgentCls = s.urgent ? " is-urgent" : "";
       html +=
-        '<article class="shift-card' +
+        '<tr class="shift-row' +
         urgentCls +
         '" data-i="' +
         i +
         '">' +
-        "<h3>" +
-        name +
-        "</h3>" +
-        '<p class="shift-meta">' +
+        "<td>" +
         s.time_start +
         " – " +
         s.time_end +
-        "</p>" +
-        '<p class="shift-tanto">' +
+        "</td>" +
+        "<td>" +
+        name +
+        "</td>" +
+        "<td>" +
         (s.tanto || "") +
-        "</p>" +
-        '<div class="card-actions">' +
+        "</td>" +
+        "<td>" +
+        st +
+        "</td>" +
+        '<td class="col-note">' +
+        (note || "—") +
+        "</td>" +
+        '<td class="col-act">' +
         '<button type="button" class="btn btn-ghost btn-edit" data-i="' +
         i +
-        '">編集</button>' +
+        '">編集</button> ' +
         '<button type="button" class="btn btn-ghost btn-del" data-i="' +
         i +
         '">削除</button>' +
-        "</div></article>";
+        "</td></tr>";
     });
-    html += "</div></div>";
+    html += "</tbody></table></div>";
     el.innerHTML = html;
   }
 

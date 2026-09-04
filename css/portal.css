@@ -96,3 +96,13 @@
 .hint-text { margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted); }
 @media (max-width: 768px) { .manual-layout { grid-template-columns: 1fr; } .form-row { flex-direction: column; align-items: stretch; } }
 @media (max-width: 480px) { .shift-list { grid-template-columns: 1fr; } }
+
+
+/* table inside shift-list: don't force card grid */
+.shift-list .shift-table-wrap {
+  display: block;
+  grid-column: 1 / -1;
+}
+.shift-list:has(.shift-table-wrap) {
+  display: block;
+}

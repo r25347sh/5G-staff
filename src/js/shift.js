@@ -118,66 +118,88 @@
       return list;
     }
 
-    var html = '<section class="shift-day-group">';
-    html += '<h2 class="shift-day-title">' + EVENT_LABEL +
-      ' <span class="day-count">' + list.length + "件</span></h2>";
-    html += '<div class="shift-day-cards">';
+    var session = (window.G5 && G5.getSession()) || null;
+    var html = '<div class="shift-table-wrap"><table class="shift-table">';
+    html += '<thead><tr>';
+    html += '<th class="col-time">時間</th>';
+    html += '<th class="col-name">担当</th>';
+    html += '<th class="col-tanto">役割</th>';
+    html += '<th class="col-status">状態</th>';
+    html += '<th class="col-note">メモ / 対象</th>';
+    html += '<th class="col-act"></th>';
+    html += '</tr></thead><tbody>';
 
     list.forEach(function (s) {
       var claimBtn = "";
       if (s.isOpen && s.status !== "急募終了") {
         var canClaim = true;
-        if (filterUserId && !isTargetedTo(s, filterUserId)) canClaim = false;
+        if (session && !isTargetedTo(s, session.id)) canClaim = false;
+        if (!session) canClaim = false;
         if (canClaim) {
           claimBtn =
-            '<button type="button" class="btn btn-claim" data-shift-id="' +
+            '<button type="button" class="btn btn-claim btn-claim-sm" data-shift-id="' +
             escapeHtml(s.shift_id) +
-            '">応募する（' +
-            s.slots_filled +
-            "/" +
-            s.slots_needed +
-            "）</button>";
+            '">応募</button>';
+        } else if (!session && s.isOpen) {
+          claimBtn = '<span class="hint-login">ログインで応募</span>';
         }
       }
-      var targetNote = "";
-      if (s.isOpen && s.target && s.target !== "all") {
-        var names = (Array.isArray(s.target) ? s.target : [s.target])
+
+      var noteParts = [];
+      if (s.note) noteParts.push(escapeHtml(s.note));
+      if (s.isOpen) {
+        if (s.target && s.target !== "all") {
+          var names = (Array.isArray(s.target) ? s.target : [s.target])
+            .map(function (id) {
+              return (map[id] && map[id].name) || id;
+            })
+            .join(", ");
+          noteParts.push("対象: " + escapeHtml(names));
+        } else {
+          noteParts.push("対象: 全員");
+        }
+        noteParts.push(s.slots_filled + "/" + s.slots_needed + "人");
+      }
+      if (s.assignees && s.assignees.length) {
+        var an = s.assignees
           .map(function (id) {
             return (map[id] && map[id].name) || id;
           })
           .join(", ");
-        targetNote = '<p class="shift-target">対象: ' + escapeHtml(names) + "</p>";
-      } else if (s.isOpen) {
-        targetNote = '<p class="shift-target">対象: 全員</p>';
+        noteParts.push("応募: " + escapeHtml(an));
       }
 
       html +=
-        '<article class="shift-card ' +
+        '<tr class="shift-row ' +
         s.statusClass +
         (s.urgent ? " is-urgent" : "") +
         '" data-shift-id="' +
         escapeHtml(s.shift_id) +
         '">' +
-        '<div class="shift-status">' +
-        escapeHtml(s.status) +
-        "</div>" +
-        "<h3>" +
-        escapeHtml(s.displayName) +
-        "</h3>" +
-        '<p class="shift-meta"><span class="time">' +
+        '<td class="col-time"><span class="time">' +
         escapeHtml(s.time_start) +
         " – " +
         escapeHtml(s.time_end) +
-        "</span></p>" +
-        '<p class="shift-tanto">役割: ' +
+        "</span></td>" +
+        '<td class="col-name">' +
+        escapeHtml(s.displayName) +
+        "</td>" +
+        '<td class="col-tanto"><span class="badge-tanto">' +
         escapeHtml(s.tanto || "—") +
-        "</p>" +
-        targetNote +
+        "</span></td>" +
+        '<td class="col-status"><span class="status-pill">' +
+        escapeHtml(s.status) +
+        "</span></td>" +
+        '<td class="col-note">' +
+        (noteParts.length ? noteParts.join(" · ") : "—") +
+        "</td>" +
+        '<td class="col-act">' +
         claimBtn +
-        "</article>";
+        "</td>" +
+        "</tr>";
     });
 
-    html += "</div></section>";
+    html += "</tbody></table></div>";
     container.innerHTML = html;
     return list;
   }
@@ -215,7 +237,7 @@
   }
 
   async function apiPutShifts(shifts, message) {
-    var token = G5.getToken && G5.getToken();
+    var token = G5.loadTokenAsync ? await G5.loadTokenAsync() : (G5.getToken && G5.getToken());
     if (!token) throw new Error("token unavailable");
     var REPO = { owner: "r25347sh", repo: "5G-staff", branch: "main" };
     var path = "src/data/shift.json";

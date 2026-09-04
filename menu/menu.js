@@ -13,21 +13,34 @@
     return BASE + (String(page).indexOf('/') === 0 ? page : '/' + page);
   }
 
+  function canSeeAdmin() {
+    try {
+      var sess = window.G5 && G5.getSession && G5.getSession();
+      if (!sess) return false;
+      return ['admin', 'teacher', 'temporary'].indexOf(sess.role) !== -1;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function buildMenuData() {
-    return [
+    var items = [
       { label: 'ホーム', icon: '✦', url: href('/') },
       { label: 'シフト', icon: '◈', url: href('/shift.html') },
-      { label: 'マニュアル', icon: '◇', url: href('/manual.html') },
-      { label: '管理', icon: '✧', url: href('/admin.html') },
-      {
-        label: 'その他',
-        icon: '◎',
-        items: [
-          { label: 'トップへ', icon: '↑', action: 'scrollTop' },
-          { label: '更新', icon: '↻', action: 'reload' }
-        ]
-      }
+      { label: 'マニュアル', icon: '◇', url: href('/manual.html') }
     ];
+    if (canSeeAdmin()) {
+      items.push({ label: '管理', icon: '✧', url: href('/admin.html') });
+    }
+    items.push({
+      label: 'その他',
+      icon: '◎',
+      items: [
+        { label: 'トップへ', icon: '↑', action: 'scrollTop' },
+        { label: '更新', icon: '↻', action: 'reload' }
+      ]
+    });
+    return items;
   }
 
   var LONG_PRESS_MS = 360;

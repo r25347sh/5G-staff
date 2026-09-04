@@ -26,7 +26,7 @@
   <header class="hero">
     <div class="hero-badge">Reitaku High School · 5G Staff</div>
     <h1><span>STAFF PORTAL</span> G⁵ Portal</h1>
-    <p class="hero-sub">5年G組スタッフ専用ポータル。<br>シフト確認・マニュアル・管理をここから。</p>
+    <p class="hero-sub">5年G組スタッフ専用ポータル。<br>シフト確認・マニュアルをここから。</p>
     <div class="hero-cta">
       <a href="shift.html" class="btn btn-primary">シフトを確認</a>
       <a href="manual.html" class="btn btn-ghost">マニュアル</a>
@@ -38,9 +38,33 @@
     <div class="cards-grid">
       <article class="card"><div class="card-icon">◈</div><h3>シフト確認</h3><p>自分と全体のシフトをリアルタイムで確認。ステータス（外・間近・中・終了）を自動表示。</p><a href="shift.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
       <article class="card"><div class="card-icon">◇</div><h3>マニュアル</h3><p>受付・接客・機材などのマニュアルを動的に一覧・閲覧。</p><a href="manual.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
-      <article class="card"><div class="card-icon">✧</div><h3>管理画面</h3><p>ログイン後、シフトの追加・変更・削除とお知らせバナー設定が可能。</p><a href="admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
+      <article class="card card-admin-only" hidden><div class="card-icon">✧</div><h3>管理画面</h3><p>ログイン後、シフトの追加・変更・削除とお知らせバナー設定が可能。</p><a href="admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
     </div>
   </section>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong> · 5年G組スタッフポータル</p><p>© 2026 Reitaku H.S. 5G</p></footer>
+
+  <script>
+  (function () {
+    function syncAdminVisibility() {
+      var sess = null;
+      try { sess = window.G5 && G5.getSession && G5.getSession(); } catch (e) {}
+      var ok = sess && ["admin", "teacher", "temporary"].indexOf(sess.role) !== -1;
+      document.querySelectorAll(".card-admin-only").forEach(function (el) {
+        el.hidden = !ok;
+      });
+      var grid = document.querySelector(".card-grid, .cards, .feature-grid");
+      if (grid) grid.classList.toggle("admin-hidden", !ok);
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(syncAdminVisibility, 50);
+        setTimeout(syncAdminVisibility, 400);
+      });
+    } else {
+      setTimeout(syncAdminVisibility, 50);
+    }
+    window.addEventListener("storage", syncAdminVisibility);
+  })();
+  </script>
 </body>
 </html>

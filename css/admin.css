@@ -301,3 +301,88 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* table for admin shifts */
+.admin-table-wrap {
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(12, 8, 22, 0.9);
+}
+
+.admin-shift-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 560px;
+}
+
+.admin-shift-table th {
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.75rem;
+  color: rgba(245, 240, 255, 0.8);
+  border-bottom: 1px solid rgba(255, 45, 149, 0.25);
+  background: rgba(255, 45, 149, 0.08);
+}
+
+.admin-shift-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.admin-shift-table tr.is-urgent {
+  background: linear-gradient(90deg, rgba(255, 107, 53, 0.12), transparent 50%);
+}
+
+.admin-shift-table .col-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 220px;
+}
+
+.admin-shift-table .col-act {
+  white-space: nowrap;
+}
+
+.admin-shift-table .btn {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
+}
+
+#urgent-note {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+#urgent-note:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.18);
+}
+
+.urgent-scope-box .chk-label {
+  margin-right: 1rem;
+  font-size: 0.9rem;
+}
+
+.hint-text strong {
+  color: var(--gold);
+}
+
+.admin-tabs .tab {
+  font-weight: 500;
+}
+
+.save-row .msg {
+  color: var(--cyan);
+}
+.save-row .msg.error {
+  color: #ff6b8a;
+}
