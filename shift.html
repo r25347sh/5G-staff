@@ -13,52 +13,72 @@
   <link rel="stylesheet" href="css/shift.css">
 </head>
 <body>
+  <a href="#main-content" class="skip-link">本文へスキップ</a>
   <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
   <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
   <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
-  <header class="page-header"><h1>シフト確認</h1><p>9/12 のシフト・急募（開始10分前に通知）</p></header>
+  <header class="page-header">
+    <h1>シフト確認</h1>
+    <p>9/12 のシフト・急募（開始10分前に通知）</p>
+    <nav class="page-nav" aria-label="ページナビ">
+      <a href="index.html">ホーム</a>
+      <a href="manual.html">マニュアル</a>
+      <a href="admin.html">管理</a>
+    </nav>
+  </header>
   <div id="banner-slot" class="banner-slot"></div>
-  <main class="main_section">
+  <main class="main_section" id="main-content">
     <div class="shift-controls">
       <div class="shift-controls-left">
         <label class="chk-label"><input type="checkbox" id="filter-mine"> 自分のシフトのみ</label>
-        <span id="session-label" class="session-label"></span>
+        <span id="session-label" class="session-label" aria-live="polite"></span>
       </div>
       <div class="shift-controls-right">
-        <button type="button" class="btn btn-ghost" id="btn-login-toggle" style="font-size:0.85rem;padding:0.5rem 1rem;">ログイン</button>
+        <button type="button" class="btn btn-primary" id="btn-login-toggle" style="font-size:0.85rem;padding:0.5rem 1rem;" aria-expanded="false" aria-controls="shift-login-box">ログイン</button>
         <button type="button" class="btn btn-ghost" id="btn-refresh" style="font-size:0.85rem;padding:0.5rem 1rem;">更新</button>
       </div>
     </div>
-    <div id="shift-login-box" class="admin-card shift-login-box" hidden>
-      <h2 style="font-size:1.1rem;margin-bottom:0.8rem;">スタッフログイン</h2>
-      <form id="shift-login-form">
-        <label>ID <input type="text" id="shift-login-id" required autocomplete="username"></label>
-        <label>パスワード <input type="password" id="shift-login-pass" required autocomplete="current-password"></label>
+
+    <div id="shift-login-box" class="admin-card shift-login-box" hidden role="region" aria-labelledby="login-heading">
+      <h2 id="login-heading" style="font-size:1.1rem;margin-bottom:0.8rem;">スタッフログイン</h2>
+      <p class="hint-text" style="margin-bottom:0.75rem;">前回のIDが自動入力されます。QRコードでもログイン可能です。</p>
+      <form id="shift-login-form" autocomplete="on">
+        <label for="shift-login-id">ID
+          <input type="text" id="shift-login-id" name="username" required autocomplete="username" inputmode="text" placeholder="例: r25347sh">
+        </label>
+        <label for="shift-login-pass">パスワード
+          <input type="password" id="shift-login-pass" name="password" required autocomplete="current-password" placeholder="パスワード">
+        </label>
         <button type="submit" class="btn btn-primary">ログイン</button>
       </form>
       <div class="login-divider"><span>または</span></div>
       <div class="qr-login-actions">
-        <button type="button" class="btn btn-ghost" id="btn-qr-start">📷 QRコードでログイン</button>
+        <button type="button" class="btn btn-ghost" id="btn-qr-start" aria-label="QRコードでログイン（カメラ使用）">📷 QRコードでログイン</button>
       </div>
       <div id="qr-scan-box" class="qr-scan-box" hidden>
-        <video id="qr-video" playsinline muted></video>
+        <video id="qr-video" playsinline muted aria-label="QRスキャン用カメラ"></video>
         <canvas id="qr-canvas" hidden></canvas>
-        <p id="qr-scan-msg" class="msg"></p>
+        <p id="qr-scan-msg" class="msg" role="status" aria-live="polite"></p>
         <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-stop">カメラ停止</button>
-        <p class="hint-text">QR内容例: {"id":"temporary1","pass":"..."}</p>
+        <p class="hint-text">QR内容例: {"id":"temporary1","pass":"..."} または id:pass</p>
       </div>
-      <p id="shift-login-msg" class="msg"></p>
+      <p id="shift-login-msg" class="msg" role="status" aria-live="polite"></p>
     </div>
-    <div class="legend-row">
+
+    <div class="legend-row" aria-label="ステータス凡例">
       <span class="leg leg-active">シフト中</span>
       <span class="leg leg-near">間近（10分前）</span>
       <span class="leg leg-urgent">急募</span>
       <span class="leg leg-open">募集</span>
       <span class="leg leg-done">終了</span>
     </div>
+    <div id="my-next-shift" class="my-next-shift" hidden aria-live="polite"></div>
     <div id="shift-list" class="shift-list"></div>
   </main>
-  <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
+  <footer class="site-footer">
+    <p><strong>G⁵ Portal</strong></p>
+    <p><a href="index.html" style="color:inherit;opacity:0.8;">ホームに戻る</a></p>
+  </footer>
   <script src="js/common.js"></script>
   <script src="js/notif.js"></script>
   <script src="src/js/shift.js"></script>
@@ -72,29 +92,71 @@
       var box = document.getElementById("shift-login-box");
       if (s) {
         if (label) label.textContent = (s.name || s.id) + " でログイン中";
-        if (btn) btn.textContent = "ログアウト";
+        if (btn) {
+          btn.textContent = "ログアウト";
+          btn.classList.remove("btn-primary");
+          btn.classList.add("btn-ghost");
+          btn.setAttribute("aria-expanded", "false");
+        }
         if (box) box.hidden = true;
       } else {
-        if (label) label.textContent = "";
-        if (btn) btn.textContent = "ログイン";
+        if (label) label.textContent = "未ログイン";
+        if (btn) {
+          btn.textContent = "ログイン";
+          btn.classList.add("btn-primary");
+          btn.classList.remove("btn-ghost");
+        }
       }
     }
+
+    function openLoginBox() {
+      var box = document.getElementById("shift-login-box");
+      var btn = document.getElementById("btn-login-toggle");
+      if (box) {
+        box.hidden = false;
+        if (btn) btn.setAttribute("aria-expanded", "true");
+        if (window.G5 && G5.enhanceLoginForm) {
+          G5.enhanceLoginForm({ idInput: "shift-login-id", passInput: "shift-login-pass", msgId: "shift-login-msg" });
+        }
+        var idEl = document.getElementById("shift-login-id");
+        if (idEl) setTimeout(function () { idEl.focus(); }, 80);
+      }
+    }
+
     document.getElementById("btn-refresh") && document.getElementById("btn-refresh").addEventListener("click", function () {
       if (window.G5Shift) G5Shift.refresh();
     });
+
     document.getElementById("btn-login-toggle") && document.getElementById("btn-login-toggle").addEventListener("click", function () {
       var s = window.G5 && G5.getSession();
-      if (s) { G5.clearSession(); updateSessionUI(); if (window.G5Shift) G5Shift.refresh(); return; }
+      if (s) {
+        if (confirm("ログアウトしますか？")) {
+          G5.clearSession();
+          updateSessionUI();
+          if (window.G5Shift) G5Shift.refresh();
+        }
+        return;
+      }
       var box = document.getElementById("shift-login-box");
-      if (box) box.hidden = !box.hidden;
+      if (box) {
+        if (box.hidden) openLoginBox();
+        else {
+          box.hidden = true;
+          document.getElementById("btn-login-toggle").setAttribute("aria-expanded", "false");
+        }
+      }
     });
+
     window.__g5_onLoginSuccess = function () {
       updateSessionUI();
       if (window.G5Shift) G5Shift.refresh();
       if (window.G5Notif) G5Notif.requestPermission();
       var box = document.getElementById("shift-login-box");
       if (box) box.hidden = true;
+      var btn = document.getElementById("btn-login-toggle");
+      if (btn) btn.setAttribute("aria-expanded", "false");
     };
+
     document.getElementById("shift-login-form") && document.getElementById("shift-login-form").addEventListener("submit", async function (e) {
       e.preventDefault();
       var id = document.getElementById("shift-login-id").value.trim();
@@ -102,12 +164,33 @@
       var msg = document.getElementById("shift-login-msg");
       try {
         await G5.loginWithCredentials(id, pass);
-        msg.textContent = "ログインしました"; msg.classList.remove("error");
+        msg.textContent = "ログインしました";
+        msg.classList.remove("error");
         window.__g5_onLoginSuccess();
-      } catch (err) { msg.textContent = err.message || String(err); msg.classList.add("error"); }
+      } catch (err) {
+        msg.textContent = err.message || String(err);
+        msg.classList.add("error");
+      }
     });
-    document.addEventListener("DOMContentLoaded", updateSessionUI);
+
+    function handleHashLogin() {
+      if (location.hash === "#login" && !(window.G5 && G5.getSession())) {
+        openLoginBox();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      updateSessionUI();
+      handleHashLogin();
+      // 未ログイン時はログインボタンを目立たせる
+      if (!(window.G5 && G5.getSession())) {
+        var btn = document.getElementById("btn-login-toggle");
+        if (btn) btn.classList.add("btn-primary");
+      }
+    });
     setTimeout(updateSessionUI, 300);
+    setTimeout(handleHashLogin, 400);
+    window.addEventListener("hashchange", handleHashLogin);
   })();
   </script>
 </body>

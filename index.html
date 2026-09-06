@@ -26,22 +26,48 @@
   <header class="hero">
     <div class="hero-badge">Reitaku High School · 5G Staff</div>
     <h1><span>STAFF PORTAL</span> G⁵ Portal</h1>
-    <p class="hero-sub">5年G組スタッフ専用ポータル。<br>シフト確認・マニュアルをここから。</p>
+    <p class="hero-sub">5年G組スタッフ専用ポータル。<br>シフト確認・管理をここから。</p>
     <div class="hero-cta">
       <a href="shift.html" class="btn btn-primary">シフトを確認</a>
+      <a href="shift.html#login" class="btn btn-ghost" id="hero-login-btn">ログイン</a>
       <a href="manual.html" class="btn btn-ghost">マニュアル</a>
     </div>
+    <p id="hero-session" class="session-label" style="margin-top:1rem;font-size:0.9rem;"></p>
   </header>
   <div id="banner-slot" class="banner-slot"></div>
   <section id="overview" class="main_section">
     <div class="section-header"><h2>機能</h2><p>スタッフ向けの主要機能</p></div>
     <div class="cards-grid">
-      <article class="card"><div class="card-icon">◈</div><h3>シフト確認</h3><p>自分と全体のシフトをリアルタイムで確認。ステータス（外・間近・中・終了）を自動表示。</p><a href="shift.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
-      <article class="card"><div class="card-icon">◇</div><h3>マニュアル</h3><p>受付・接客・機材などのマニュアルを動的に一覧・閲覧。</p><a href="manual.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
-      <article class="card card-admin-only" hidden><div class="card-icon">✧</div><h3>管理画面</h3><p>ログイン後、シフトの追加・変更・削除とお知らせバナー設定が可能。</p><a href="admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a></article>
+      <article class="card">
+        <div class="card-icon">◈</div>
+        <h3>シフト確認</h3>
+        <p>自分と全体のシフトをリアルタイムで確認。ステータス（外・間近・中・終了）を自動表示。ログインすると「自分のシフトのみ」フィルタが使えます。</p>
+        <a href="shift.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
+      </article>
+      <article class="card">
+        <div class="card-icon">◇</div>
+        <h3>マニュアル</h3>
+        <p>受付・接客・機材などのマニュアルを動的に一覧・閲覧。<strong>現在準備中</strong>の場合があります。</p>
+        <a href="manual.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
+      </article>
+      <article class="card card-admin-only" hidden>
+        <div class="card-icon">✧</div>
+        <h3>管理画面</h3>
+        <p>ログイン後、シフトの追加・変更・削除とお知らせバナー設定が可能。</p>
+        <a href="admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
+      </article>
+      <article class="card">
+        <div class="card-icon">⚡</div>
+        <h3>簡単ログイン</h3>
+        <p>ID/パスワードまたはQRコードでログイン。前回のIDを自動入力。パスワード表示切替対応。</p>
+        <a href="shift.html#login" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">ログインする</a>
+      </article>
     </div>
   </section>
-  <footer class="site-footer"><p><strong>G⁵ Portal</strong> · 5年G組スタッフポータル</p><p>© 2026 Reitaku H.S. 5G</p></footer>
+  <footer class="site-footer">
+    <p><strong>G⁵ Portal</strong> · 5年G組スタッフポータル</p>
+    <p>© 2026 Reitaku H.S. 5G</p>
+  </footer>
 
   <script>
   (function () {
@@ -52,8 +78,21 @@
       document.querySelectorAll(".card-admin-only").forEach(function (el) {
         el.hidden = !ok;
       });
-      var grid = document.querySelector(".card-grid, .cards, .feature-grid");
-      if (grid) grid.classList.toggle("admin-hidden", !ok);
+      var heroSess = document.getElementById("hero-session");
+      var heroLogin = document.getElementById("hero-login-btn");
+      if (sess) {
+        if (heroSess) heroSess.textContent = (sess.name || sess.id) + " でログイン中";
+        if (heroLogin) {
+          heroLogin.textContent = "シフトへ";
+          heroLogin.href = "shift.html";
+        }
+      } else {
+        if (heroSess) heroSess.textContent = "未ログイン — シフト確認ページからログインできます";
+        if (heroLogin) {
+          heroLogin.textContent = "ログイン";
+          heroLogin.href = "shift.html#login";
+        }
+      }
     }
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", function () {

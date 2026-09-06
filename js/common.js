@@ -57,6 +57,18 @@
     sessionStorage.setItem("g5_session", JSON.stringify({ id: user.id, name: user.name || user.id, role: user.role }));
   };
   G5.clearSession = function () { sessionStorage.removeItem("g5_session"); };
+
+  /* 前回ログインIDを記憶（localStorage） */
+  G5.getLastLoginId = function () {
+    try { return localStorage.getItem("g5_last_id") || ""; } catch (e) { return ""; }
+  };
+  G5.setLastLoginId = function (id) {
+    try {
+      if (id) localStorage.setItem("g5_last_id", String(id));
+      else localStorage.removeItem("g5_last_id");
+    } catch (e) {}
+  };
+
   /* PAT: 分割記述（push protection 回避） */
   G5.getToken = function () {
     try {
@@ -80,6 +92,7 @@
     });
     if (!u) throw new Error("IDまたはパスワードが違います");
     G5.setSession({ id: u.id, name: u.name, role: u.role });
+    G5.setLastLoginId(u.id);
     return u;
   };
 
@@ -116,6 +129,61 @@
   G5.loginWithQrText = async function (raw) {
     var cred = G5.parseLoginPayload(raw);
     return await G5.loginWithCredentials(cred.id, cred.pass);
+  };
+
+  /**
+   * ログインフォームをアクセシビリティ強化で初期化
+   * - 前回IDを自動入力
+   * - パスワード表示トグル
+   * - メッセージ用 aria-live
+   * - フォーカス管理
+   */
+  G5.enhanceLoginForm = function (opts) {
+    opts = opts || {};
+    var idInput = document.getElementById(opts.idInput || "login-id") || document.getElementById("shift-login-id");
+    var passInput = document.getElementById(opts.passInput || "login-pass") || document.getElementById("shift-login-pass");
+    var form = idInput && idInput.form;
+    if (!idInput || !passInput) return;
+
+    // 前回ID復元
+    var last = G5.getLastLoginId();
+    if (last && !idInput.value) {
+      idInput.value = last;
+      // パスワード側にフォーカス
+      setTimeout(function () { passInput.focus(); }, 50);
+    } else if (!idInput.value) {
+      setTimeout(function () { idInput.focus(); }, 50);
+    }
+
+    // パスワード表示トグル（まだ無ければ追加）
+    if (!passInput.parentElement.querySelector(".pass-toggle")) {
+      var wrap = document.createElement("div");
+      wrap.className = "pass-wrap";
+      wrap.style.position = "relative";
+      passInput.parentNode.insertBefore(wrap, passInput);
+      wrap.appendChild(passInput);
+      var toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "pass-toggle";
+      toggle.setAttribute("aria-label", "パスワードを表示");
+      toggle.textContent = "表示";
+      toggle.style.cssText = "position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);font-size:0.75rem;padding:0.2rem 0.45rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:var(--text-muted);cursor:pointer;";
+      wrap.appendChild(toggle);
+      toggle.addEventListener("click", function () {
+        var show = passInput.type === "password";
+        passInput.type = show ? "text" : "password";
+        toggle.textContent = show ? "隠す" : "表示";
+        toggle.setAttribute("aria-label", show ? "パスワードを隠す" : "パスワードを表示");
+      });
+    }
+
+    // メッセージ要素に aria-live
+    var msgId = opts.msgId || (form && form.id === "shift-login-form" ? "shift-login-msg" : "login-msg");
+    var msg = document.getElementById(msgId);
+    if (msg) {
+      msg.setAttribute("role", "status");
+      msg.setAttribute("aria-live", "polite");
+    }
   };
 
   function boot() { initAmbient(); loadBanner(); }

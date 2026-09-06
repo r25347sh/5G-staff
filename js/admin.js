@@ -563,10 +563,13 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    if (window.G5 && G5.enhanceLoginForm) {
+      G5.enhanceLoginForm({ idInput: "login-id", passInput: "login-pass", msgId: "login-msg" });
+    }
     var sess = G5.getSession();
     if (sess && ALLOWED.indexOf(sess.role) !== -1) enterAdmin(sess);
 
-        window.__g5_onLoginSuccess = function (u) {
+    window.__g5_onLoginSuccess = function (u) {
       if (!u) u = G5.getSession();
       if (!u || ALLOWED.indexOf(u.role) === -1) {
         showMsg(document.getElementById("login-msg"), "管理権限がありません", true);

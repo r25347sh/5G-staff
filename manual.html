@@ -11,16 +11,28 @@
   <link rel="stylesheet" href="css/manual.css">
 </head>
 <body>
+  <a href="#main-content" class="skip-link">本文へスキップ</a>
   <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
   <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
   <div class="g5-ambient" id="ambient"></div>
-  <header class="page-header"><h1>マニュアル</h1><p>一覧から選択して表示</p></header>
+  <header class="page-header">
+    <h1>マニュアル</h1>
+    <p>一覧から選択して表示</p>
+    <nav class="page-nav" aria-label="ページナビ">
+      <a href="index.html">ホーム</a>
+      <a href="shift.html">シフト</a>
+      <a href="admin.html">管理</a>
+    </nav>
+  </header>
   <div id="banner-slot" class="banner-slot"></div>
-  <main class="main_section manual-layout">
+  <main class="main_section manual-layout" id="main-content">
     <aside class="manual-nav"><h2>一覧</h2><ul id="manual-list"></ul></aside>
     <article class="manual-content" id="manual-content"><p class="empty-msg">左の一覧からマニュアルを選択してください</p></article>
   </main>
-  <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
+  <footer class="site-footer">
+    <p><strong>G⁵ Portal</strong></p>
+    <p><a href="index.html" style="color:inherit;opacity:0.8;">ホームに戻る</a></p>
+  </footer>
   <script src="js/common.js"></script>
   <script src="js/notif.js"></script>
   <script src="js/manual.js"></script>

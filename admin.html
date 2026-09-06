@@ -19,26 +19,30 @@
   <header class="page-header"><h1>管理画面</h1><p>9/12 シフト・急募・エクスポート</p></header>
   <div id="banner-slot" class="banner-slot"></div>
   <main class="main_section">
-    <section id="login-section" class="admin-card">
-      <h2>ログイン</h2>
-      <form id="login-form">
-        <label>ID <input type="text" id="login-id" required autocomplete="username"></label>
-        <label>パスワード <input type="password" id="login-pass" required autocomplete="current-password"></label>
+    <section id="login-section" class="admin-card" role="region" aria-labelledby="admin-login-heading">
+      <h2 id="admin-login-heading">管理ログイン</h2>
+      <p class="hint-text" style="margin-bottom:0.75rem;">前回のIDが自動入力されます。QRコードでもログイン可能です。<br>admin / teacher / temporary のみ管理可能</p>
+      <form id="login-form" autocomplete="on">
+        <label for="login-id">ID
+          <input type="text" id="login-id" name="username" required autocomplete="username" inputmode="text" placeholder="例: r25347sh">
+        </label>
+        <label for="login-pass">パスワード
+          <input type="password" id="login-pass" name="password" required autocomplete="current-password" placeholder="パスワード">
+        </label>
         <button type="submit" class="btn btn-primary">ログイン</button>
       </form>
       <div class="login-divider"><span>または</span></div>
       <div class="qr-login-actions">
-        <button type="button" class="btn btn-ghost" id="btn-qr-start">📷 QRコードでログイン</button>
+        <button type="button" class="btn btn-ghost" id="btn-qr-start" aria-label="QRコードでログイン（カメラ使用）">📷 QRコードでログイン</button>
       </div>
       <div id="qr-scan-box" class="qr-scan-box" hidden>
-        <video id="qr-video" playsinline muted></video>
+        <video id="qr-video" playsinline muted aria-label="QRスキャン用カメラ"></video>
         <canvas id="qr-canvas" hidden></canvas>
-        <p id="qr-scan-msg" class="msg"></p>
+        <p id="qr-scan-msg" class="msg" role="status" aria-live="polite"></p>
         <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-stop">カメラ停止</button>
-        <p class="hint-text">QR内容例: {"id":"r25347sh","pass":"..."}</p>
+        <p class="hint-text">QR内容例: {"id":"r25347sh","pass":"..."} または id:pass</p>
       </div>
-      <p id="login-msg" class="msg"></p>
-      <p class="hint-text">admin / teacher / temporary のみ管理可能</p>
+      <p id="login-msg" class="msg" role="status" aria-live="polite"></p>
     </section>
 
     <section id="admin-panel" hidden>
