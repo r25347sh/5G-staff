@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07050f">
+  <title>スレッド | G⁵ Portal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/threads.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">本文へスキップ</a>
+  <button id="notif-bell" class="notif-bell" aria-label="通知"><span class="bell-icon">🔔</span><span id="notif-badge" class="notif-badge" hidden>0</span></button>
+  <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
+  <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
+  <header class="page-header">
+    <h1>スレッド</h1>
+    <p>お知らせ・ディスカッション</p>
+    <nav class="page-nav" aria-label="ページナビ">
+      <a href="index.html">ホーム</a>
+      <a href="shift.html">シフト</a>
+      <a href="chat.html">チャット</a>
+      <a href="login.html">ログイン</a>
+    </nav>
+  </header>
+  <div id="banner-slot" class="banner-slot"></div>
+  <main class="main_section" id="main-content">
+    <div class="thread-toolbar">
+      <span id="thread-session" class="session-label"></span>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-new-thread" hidden>新規スレッド</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-refresh-threads">更新</button>
+    </div>
+    <div id="new-thread-box" class="admin-card" hidden>
+      <h2 style="font-size:1.05rem;margin-bottom:0.6rem;">新規スレッド</h2>
+      <label for="nt-title">タイトル<input type="text" id="nt-title" maxlength="80" placeholder="タイトル"></label>
+      <label for="nt-body">本文<textarea id="nt-body" rows="4" maxlength="2000" placeholder="本文"></textarea></label>
+      <button type="button" class="btn btn-primary" id="btn-post-thread">投稿</button>
+      <p id="nt-msg" class="msg" role="status"></p>
+    </div>
+    <div id="thread-list" class="thread-list" aria-live="polite"></div>
+    <div id="thread-detail" class="thread-detail admin-card" hidden>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-back-list">← 一覧へ</button>
+      <article id="thread-article"></article>
+      <div class="reply-box" id="reply-box" hidden>
+        <label for="reply-text">返信<textarea id="reply-text" rows="3" maxlength="1000"></textarea></label>
+        <button type="button" class="btn btn-primary" id="btn-post-reply">返信する</button>
+        <p id="reply-msg" class="msg" role="status"></p>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
+  <script src="js/common.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/notif.js"></script>
+  <script src="js/threads.js"></script>
+</body>
+</html>

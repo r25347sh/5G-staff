@@ -27,6 +27,8 @@
     var items = [
       { label: 'ホーム', icon: '✦', url: href('/') },
       { label: 'シフト', icon: '◈', url: href('/shift.html') },
+      { label: 'チャット', icon: '💬', url: href('/chat.html') },
+      { label: 'スレッド', icon: '☰', url: href('/threads.html') },
       { label: 'マニュアル', icon: '◇', url: href('/manual.html') }
     ];
     if (canSeeAdmin()) {
@@ -36,6 +38,7 @@
       label: 'その他',
       icon: '◎',
       items: [
+        { label: 'ログイン', icon: '🔑', url: href('/login.html') },
         { label: 'トップへ', icon: '↑', action: 'scrollTop' },
         { label: '更新', icon: '↻', action: 'reload' }
       ]

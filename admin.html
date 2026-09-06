@@ -21,6 +21,7 @@
   <main class="main_section">
     <section id="login-section" class="admin-card" role="region" aria-labelledby="admin-login-heading">
       <h2 id="admin-login-heading">管理ログイン</h2>
+      <p class="hint-text"><a href="login.html?next=admin.html">共通ログインページ</a>からも入れます</p>
       <p class="hint-text" style="margin-bottom:0.75rem;">前回のIDが自動入力されます。QRコードでもログイン可能です。<br>admin / teacher / temporary のみ管理可能</p>
       <form id="login-form" autocomplete="on">
         <label for="login-id">ID
@@ -58,6 +59,7 @@
         <button type="button" class="tab" data-tab="urgent">急募</button>
         <button type="button" class="tab" data-tab="export">出力</button>
         <button type="button" class="tab" data-tab="banner">バナー</button>
+        <button type="button" class="tab" data-tab="notify">通知送信</button>
       </div>
 
       <div id="tab-shifts" class="tab-panel">
@@ -185,10 +187,50 @@
         <button type="button" class="btn btn-primary" id="btn-save-banner">保存</button>
         <p id="banner-save-msg" class="msg"></p>
       </div>
+
+      <div id="tab-notify" class="tab-panel" hidden>
+        <p class="hint-text">admin / teacher から生徒への一対一・一対多通知。サイト内ベル＋プッシュ通知に届きます。</p>
+        <div class="form-row form-row-wrap">
+          <label class="field" style="min-width:100%;">
+            <span>宛先</span>
+            <select id="notify-to">
+              <option value="students">全生徒（student）</option>
+              <option value="all">全員</option>
+              <option value="one">個別選択</option>
+              <option value="multi">複数選択</option>
+            </select>
+          </label>
+        </div>
+        <div id="notify-users-wrap" class="form-row" hidden>
+          <label class="field" style="min-width:100%;">
+            <span>ユーザー</span>
+            <select id="notify-users" multiple size="6" style="min-height:8rem;"></select>
+          </label>
+          <p class="hint-text">Ctrl / Cmd で複数選択</p>
+        </div>
+        <label class="field" style="display:block;margin-bottom:0.75rem;">
+          <span>タイトル</span>
+          <input type="text" id="notify-title" maxlength="80" placeholder="お知らせタイトル" style="width:100%;">
+        </label>
+        <label class="field" style="display:block;margin-bottom:0.75rem;">
+          <span>本文</span>
+          <textarea id="notify-body" rows="4" maxlength="1000" placeholder="通知本文" style="width:100%;"></textarea>
+        </label>
+        <label class="field" style="display:block;margin-bottom:0.75rem;">
+          <span>リンク（任意）</span>
+          <input type="text" id="notify-link" placeholder="shift.html など" style="width:100%;">
+        </label>
+        <button type="button" class="btn btn-primary" id="btn-send-notify">通知を送信</button>
+        <p id="notify-msg" class="msg" role="status"></p>
+        <hr style="border-color:rgba(255,255,255,0.1);margin:1.25rem 0;">
+        <h3 style="font-size:1rem;">最近の通知</h3>
+        <div id="notify-history" class="shift-list"></div>
+      </div>
     </section>
   </main>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
   <script src="js/common.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/notif.js"></script>
   <script src="src/js/shift.js"></script>
   <script src="js/qr-login.js"></script>

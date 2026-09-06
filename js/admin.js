@@ -91,6 +91,7 @@
   }
 
   function fillUserSelects() {
+    fillNotifyUsers && fillNotifyUsers();
     var opts = usersCache
       .map(function (u) {
         return (
@@ -411,7 +412,163 @@
         JSON.stringify(shiftsCache, null, 2),
         "admin: update shifts"
       );
+      /* 急募枠への通知をサーバ通知として送信 */
+      try {
+        await notifyUrgentShifts(shiftsCache);
+      } catch (ne) {
+        console.warn("urgent notif", ne);
+      }
       showMsg(msg, "保存しました");
+    } catch (e) {
+      showMsg(msg, "失敗: " + e.message, true);
+    }
+  }
+
+  /** 急募中の枠について対象者へ通知（shift_id 単位で1回） */
+  async function notifyUrgentShifts(shifts) {
+    if (!window.G5Notif || !G5Notif.sendNotification) return;
+    var sent = [];
+    try {
+      sent = JSON.parse(localStorage.getItem("g5_urgent_notified_ids") || "[]");
+    } catch (e) {}
+    var list = shifts || [];
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i];
+      if (!s.urgent || !s.open || !s.shift_id) continue;
+      if (sent.indexOf(s.shift_id) !== -1) continue;
+      var filled = s.slots_filled || (s.assignees && s.assignees.length) || 0;
+      var needed = s.slots_needed || 1;
+      if (filled >= needed) continue;
+      var to = s.target === "all" || !s.target ? "students" : s.target;
+      var title = "急募のお知らせ";
+      var body =
+        (s.time_start || "") +
+        "–" +
+        (s.time_end || "") +
+        "（" +
+        (s.tanto || "") +
+        "）募集中" +
+        (s.note ? " — " + s.note : "");
+      await G5Notif.sendNotification({
+        to: to,
+        title: title,
+        body: body,
+        type: "urgent",
+        link: "shift.html"
+      });
+      sent.push(s.shift_id);
+    }
+    try {
+      localStorage.setItem("g5_urgent_notified_ids", JSON.stringify(sent.slice(-50)));
+    } catch (e) {}
+  }
+
+  function fillNotifyUsers() {
+    var sel = document.getElementById("notify-users");
+    if (!sel) return;
+    sel.innerHTML = usersCache
+      .map(function (u) {
+        return (
+          '<option value="' +
+          u.id +
+          '">' +
+          (u.name || u.id) +
+          "（" +
+          u.role +
+          "）</option>"
+        );
+      })
+      .join("");
+  }
+
+  async function loadNotifyHistory() {
+    var box = document.getElementById("notify-history");
+    if (!box) return;
+    try {
+      var list = window.G5Api
+        ? await G5Api.fetchJson("src/data/notifications.json")
+        : [];
+      if (!Array.isArray(list)) list = [];
+      list = list.slice().reverse().slice(0, 15);
+      if (!list.length) {
+        box.innerHTML = "<p class='hint-text'>まだ通知はありません</p>";
+        return;
+      }
+      box.innerHTML = list
+        .map(function (n) {
+          var to =
+            n.to === "all"
+              ? "全員"
+              : n.to === "students"
+              ? "全生徒"
+              : Array.isArray(n.to)
+              ? n.to.join(", ")
+              : String(n.to || "");
+          return (
+            "<div class='admin-card' style='padding:0.65rem 0.85rem;margin-bottom:0.4rem;'>" +
+            "<strong>" +
+            (n.title || "") +
+            "</strong> <span class='hint-text'>→ " +
+            to +
+            "</span><br>" +
+            "<span>" +
+            (n.body || "") +
+            "</span><br>" +
+            "<span class='hint-text'>" +
+            (n.from_name || n.from_id || "") +
+            " · " +
+            (n.created_at || "") +
+            "</span></div>"
+          );
+        })
+        .join("");
+    } catch (e) {
+      box.innerHTML = "<p class='msg error'>履歴の取得に失敗</p>";
+    }
+  }
+
+  async function sendAdminNotify() {
+    var msg = document.getElementById("notify-msg");
+    var mode = (document.getElementById("notify-to") || {}).value || "students";
+    var title = (document.getElementById("notify-title") || {}).value || "";
+    var body = (document.getElementById("notify-body") || {}).value || "";
+    var link = (document.getElementById("notify-link") || {}).value || "";
+    title = title.trim();
+    body = body.trim();
+    if (!title || !body) {
+      showMsg(msg, "タイトルと本文を入力してください", true);
+      return;
+    }
+    var to = "students";
+    if (mode === "all") to = "all";
+    else if (mode === "one" || mode === "multi") {
+      var sel = document.getElementById("notify-users");
+      var ids = [];
+      if (sel) {
+        Array.prototype.forEach.call(sel.selectedOptions, function (o) {
+          ids.push(o.value);
+        });
+      }
+      if (!ids.length) {
+        showMsg(msg, "宛先ユーザーを選択してください", true);
+        return;
+      }
+      to = mode === "one" ? ids[0] : ids;
+    }
+    showMsg(msg, "送信中…");
+    try {
+      if (!window.G5Notif || !G5Notif.sendNotification) throw new Error("通知モジュール未読込");
+      await G5Notif.sendNotification({
+        to: to,
+        title: title,
+        body: body,
+        type: mode === "all" || mode === "students" ? "broadcast" : "direct",
+        link: link
+      });
+      showMsg(msg, "送信しました");
+      document.getElementById("notify-title").value = "";
+      document.getElementById("notify-body").value = "";
+      loadNotifyHistory();
     } catch (e) {
       showMsg(msg, "失敗: " + e.message, true);
     }
@@ -602,6 +759,27 @@
     document.getElementById("btn-add-shift").addEventListener("click", addShift);
     document.getElementById("btn-save-shifts").addEventListener("click", saveShifts);
     document.getElementById("btn-save-banner").addEventListener("click", saveBanner);
+
+    var notifyBtn = document.getElementById("btn-send-notify");
+    if (notifyBtn) notifyBtn.addEventListener("click", sendAdminNotify);
+    var notifyTo = document.getElementById("notify-to");
+    if (notifyTo) {
+      notifyTo.addEventListener("change", function () {
+        var wrap = document.getElementById("notify-users-wrap");
+        if (wrap) wrap.hidden = notifyTo.value !== "one" && notifyTo.value !== "multi";
+        var sel = document.getElementById("notify-users");
+        if (sel) sel.multiple = notifyTo.value === "multi";
+      });
+    }
+    /* 通知タブ表示時に履歴ロード */
+    document.querySelectorAll(".admin-tabs .tab").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        if (tab.dataset.tab === "notify") {
+          fillNotifyUsers();
+          loadNotifyHistory();
+        }
+      });
+    });
 
     var bulkBtn = document.getElementById("btn-bulk-add");
     if (bulkBtn) bulkBtn.addEventListener("click", bulkAdd);

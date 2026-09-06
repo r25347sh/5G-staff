@@ -7,28 +7,32 @@
 - **シフト確認** … **9/12 固定**（時間のみ設定）。ステータス（外 / 間近10分前 / 中 / 終了）
 - **一括登録** … 同じ時間帯に複数人を一括追加
 - **役割** … 受付 / 総務 / ブラックジャック / ポーカー / チンチロ / 大富豪
-- **急募** … 全員 / 特定複数人向け。人数指定。定員到達で急募終了通知（サイト内＋プッシュ）
-- **通知** … シフト開始 **10分前** にサイト内通知＋プッシュ通知
-- **CSV / PDF エクスポート**
-- **バナー / PWA / MENU**
-- **簡単ログイン** … ID/パスワード + QRコード。前回ID自動入力・パスワード表示切替・`#login` ハッシュ対応
+- **急募** … 全員 / 特定複数人向け。人数指定。定員到達で急募終了通知。**急募投稿時は対象者へ通知**
+- **通知** … サイト内ベル + ブラウザ／PWA プッシュ。admin/teacher から一対一・一対多送信可
+- **スレッド** … 掲示板（投稿・返信）
+- **クラスチャット** … スタッフ用グループチャット
+- **ログイン** … 独立 `login.html`（ID/PASS・QR・前回ID記憶）
+- **CSV / PDF エクスポート** / **バナー / PWA / MENU**
 
 ## ページ
 
 | ファイル | 内容 |
 |----------|------|
-| `index.html` | トップ（ログイン導線あり） |
-| `shift.html` | シフト一覧・急募応募・ログイン |
-| `manual.html` | マニュアル（現在空＝準備中表示） |
-| `admin.html` | 管理（個別 / 一括 / 急募 / 出力 / バナー） |
+| `index.html` | トップ |
+| `login.html` | ログイン（専用） |
+| `shift.html` | シフト一覧・急募応募 |
+| `chat.html` | クラスチャット |
+| `threads.html` | スレッド |
+| `manual.html` | マニュアル |
+| `admin.html` | 管理（シフト / 急募 / 通知送信 / バナー 等） |
 
 ## データ
 
-- `src/data/shift.json`
-- `src/data/users.json`
-- `src/data/banner.json`
-- `src/data/manuals.json`（空配列可）
-- `src/data/manual/`（`.gitkeep` のみ。md 追加でマニュアル復活）
+- `src/data/shift.json` / `users.json` / `banner.json`
+- `src/data/notifications.json` … 通知キュー
+- `src/data/threads.json` … スレッド
+- `src/data/chat.json` … チャットメッセージ
+- `src/data/manual/` … `.gitkeep`（md 追加でマニュアル復活）
 
 ## ユーザー（初期）
 

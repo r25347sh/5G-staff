@@ -217,6 +217,7 @@
       if (window.G5Notif) {
         G5Notif.checkNearShifts(list, session);
         G5Notif.checkUrgentFilled && G5Notif.checkUrgentFilled(pair[0], session);
+        G5Notif.checkUrgentOpened && G5Notif.checkUrgentOpened(pair[0], session);
       }
       bindClaimButtons();
     } catch (e) {

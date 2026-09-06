@@ -6,7 +6,7 @@
  */
 (function () {
   "use strict";
-  var CACHE_VER = "20260906a";
+  var CACHE_VER = "20260906b";
 
   function detectBase() {
     var path = location.pathname;
@@ -107,10 +107,13 @@
   if (path.indexOf("shift") !== -1) pageCss = "css/shift.css";
   else if (path.indexOf("manual") !== -1) pageCss = "css/manual.css";
   else if (path.indexOf("admin") !== -1) pageCss = "css/admin.css";
+  else if (path.indexOf("login") !== -1) pageCss = "css/login.css";
+  else if (path.indexOf("chat") !== -1) pageCss = "css/chat.css";
+  else if (path.indexOf("thread") !== -1) pageCss = "css/threads.css";
   injectCss(p(pageCss) + q);
 
   /* JS は依存順だが並列プリロード風に直列完了 */
-  var jsQueue = [p("js/common.js") + q, p("js/notif.js") + q, p("menu/menu.js") + q];
+  var jsQueue = [p("js/common.js") + q, p("js/api.js") + q, p("js/notif.js") + q, p("menu/menu.js") + q];
   function loadNext(i) {
     if (i >= jsQueue.length) {
       if ("serviceWorker" in navigator) {

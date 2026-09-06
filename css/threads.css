@@ -1,0 +1,44 @@
+.thread-toolbar {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem;
+  align-items: center; margin-bottom: 1rem;
+}
+.thread-list { display: flex; flex-direction: column; gap: 0.65rem; }
+.thread-item {
+  text-align: left;
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  background: rgba(14, 10, 24, 0.88);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+}
+.thread-item:hover, .thread-item:focus {
+  border-color: rgba(0, 245, 255, 0.35);
+  outline: none;
+}
+.thread-item h3 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+.thread-meta { font-size: 0.78rem; color: var(--text-muted, #a89bb8); margin: 0 0 0.35rem; }
+.thread-preview { font-size: 0.88rem; opacity: 0.85; margin: 0; }
+.thread-detail { margin-top: 0.5rem; }
+.thread-body { margin: 0.75rem 0 1.25rem; line-height: 1.55; }
+.replies-head { font-weight: 600; margin-bottom: 0.5rem; color: var(--cyan, #00f5ff); }
+.reply {
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  border-left: 3px solid rgba(255, 45, 149, 0.45);
+}
+.reply-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+.reply-box { margin-top: 1rem; }
+.reply-box textarea, #new-thread-box textarea, #new-thread-box input[type="text"] {
+  display: block; width: 100%; margin: 0.35rem 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font: inherit;
+}
+#new-thread-box label { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; }

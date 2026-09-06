@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07050f">
+  <meta name="description" content="G⁵ Portal ログイン">
+  <title>ログイン | G⁵ Portal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body class="login-page">
+  <a href="#login-main" class="skip-link">ログインフォームへ</a>
+  <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
+  <main class="login-shell" id="login-main">
+    <div class="login-card admin-card">
+      <div class="login-brand">
+        <span class="login-badge">Reitaku · 5G Staff</span>
+        <h1>G⁵ Portal</h1>
+        <p class="login-sub">スタッフログイン</p>
+      </div>
+
+      <div id="already-box" class="already-box" hidden>
+        <p id="already-label"></p>
+        <div class="already-actions">
+          <a id="already-go" class="btn btn-primary" href="index.html">ポータルへ</a>
+          <button type="button" class="btn btn-ghost" id="btn-relogin">別アカウントでログイン</button>
+        </div>
+      </div>
+
+      <form id="login-form" autocomplete="on">
+        <label for="login-id">ID
+          <input type="text" id="login-id" name="username" required autocomplete="username" inputmode="text" placeholder="ID を入力">
+        </label>
+        <label for="login-pass">パスワード
+          <input type="password" id="login-pass" name="password" required autocomplete="current-password" placeholder="パスワード">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">ログイン</button>
+      </form>
+
+      <div class="login-divider"><span>または</span></div>
+      <div class="qr-login-actions">
+        <button type="button" class="btn btn-ghost btn-block" id="btn-qr-start" aria-label="QRコードでログイン">📷 QRコードでログイン</button>
+      </div>
+      <div id="qr-scan-box" class="qr-scan-box" hidden>
+        <video id="qr-video" playsinline muted aria-label="QRスキャン用カメラ"></video>
+        <canvas id="qr-canvas" hidden></canvas>
+        <p id="qr-scan-msg" class="msg" role="status" aria-live="polite"></p>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-stop">カメラ停止</button>
+        <p class="hint-text">QR例: {"id":"...","pass":"..."} または id:pass</p>
+      </div>
+
+      <p id="login-msg" class="msg" role="status" aria-live="polite"></p>
+      <p class="hint-text login-foot">
+        <a href="index.html">ホームに戻る</a>
+        · ログイン後にシフト・チャット・スレッドが使えます
+      </p>
+    </div>
+  </main>
+  <script src="js/common.js"></script>
+  <script src="js/qr-login.js"></script>
+  <script>
+  (function () {
+    function redirectAfterLogin(u) {
+      var q = new URLSearchParams(location.search);
+      var next = q.get("next") || q.get("redirect");
+      if (next && next.indexOf("http") !== 0 && next.indexOf("//") !== 0) {
+        location.href = next;
+        return;
+      }
+      if (u && ["admin", "teacher", "temporary"].indexOf(u.role) !== -1) {
+        location.href = "admin.html";
+        return;
+      }
+      location.href = "shift.html";
+    }
+
+    function showAlready() {
+      var s = G5.getSession && G5.getSession();
+      var box = document.getElementById("already-box");
+      var form = document.getElementById("login-form");
+      if (!s) {
+        if (box) box.hidden = true;
+        return;
+      }
+      if (box) {
+        box.hidden = false;
+        document.getElementById("already-label").textContent =
+          (s.name || s.id) + "（" + s.role + "）でログイン中";
+        var go = document.getElementById("already-go");
+        if (["admin", "teacher", "temporary"].indexOf(s.role) !== -1) go.href = "admin.html";
+        else go.href = "shift.html";
+      }
+    }
+
+    document.getElementById("btn-relogin") && document.getElementById("btn-relogin").addEventListener("click", function () {
+      G5.clearSession();
+      document.getElementById("already-box").hidden = true;
+      if (window.G5 && G5.enhanceLoginForm) G5.enhanceLoginForm({ idInput: "login-id", passInput: "login-pass", msgId: "login-msg" });
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var id = document.getElementById("login-id").value.trim();
+      var pass = document.getElementById("login-pass").value;
+      var msg = document.getElementById("login-msg");
+      try {
+        var u = await G5.loginWithCredentials(id, pass);
+        msg.textContent = "ログインしました。移動します…";
+        msg.classList.remove("error");
+        if (window.G5Notif) G5Notif.requestPermission();
+        setTimeout(function () { redirectAfterLogin(u); }, 400);
+      } catch (err) {
+        msg.textContent = err.message || String(err);
+        msg.classList.add("error");
+      }
+    });
+
+    window.__g5_onLoginSuccess = function (u) {
+      var msg = document.getElementById("login-msg");
+      if (msg) {
+        msg.textContent = "ログインしました。移動します…";
+        msg.classList.remove("error");
+      }
+      setTimeout(function () { redirectAfterLogin(u); }, 400);
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+      showAlready();
+      if (window.G5 && G5.enhanceLoginForm) {
+        G5.enhanceLoginForm({ idInput: "login-id", passInput: "login-pass", msgId: "login-msg" });
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
