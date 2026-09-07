@@ -44,7 +44,10 @@
 
   /** 生 JSON を fetch（キャッシュ回避） */
   async function fetchJson(path) {
-    var res = await fetch(base() + "/" + path.replace(/^\//, "") + "?t=" + Date.now());
+    var res = await fetch(base() + "/" + path.replace(/^\//, "") + "?t=" + Date.now() + "&r=" + Math.random().toString(36).slice(2, 8), {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache" }
+    });
     if (!res.ok) throw new Error("fetch " + path + " " + res.status);
     return await res.json();
   }

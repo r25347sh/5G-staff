@@ -209,6 +209,15 @@
           <p class="hint-text">Ctrl / Cmd で複数選択</p>
         </div>
         <label class="field" style="display:block;margin-bottom:0.75rem;">
+          <span>レベル</span>
+          <select id="notify-level" style="width:100%;max-width:16rem;">
+            <option value="urgent">緊急（プッシュ優先）</option>
+            <option value="high">重要</option>
+            <option value="normal" selected>通常</option>
+            <option value="low">低（ベルのみ）</option>
+          </select>
+        </label>
+        <label class="field" style="display:block;margin-bottom:0.75rem;">
           <span>タイトル</span>
           <input type="text" id="notify-title" maxlength="80" placeholder="お知らせタイトル" style="width:100%;">
         </label>
@@ -231,6 +240,7 @@
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
   <script src="js/common.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/realtime.js"></script>
   <script src="js/notif.js"></script>
   <script src="src/js/shift.js"></script>
   <script src="js/qr-login.js"></script>

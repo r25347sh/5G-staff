@@ -14,8 +14,8 @@
   var READ_KEY = "g5_notif_read";
   var PUSHED_KEY = "g5_notif_pushed";
   var INBOX_KEY = "g5_notif_inbox";
-  var POLL_MS = 10000;
-  var POLL_FAIL_MS = 20000;
+  var POLL_MS = 5000;
+  var POLL_FAIL_MS = 15000;
   var pollTimer = null;
   var polling = false;
   var failStreak = 0;
@@ -131,6 +131,12 @@
       .replace(/"/g, "&quot;");
   }
 
+  function levelLabel(level) {
+    if (level === "urgent" || level === "high") return level === "urgent" ? "緊急" : "重要";
+    if (level === "low") return "低";
+    return "通常";
+  }
+
   function addToPanel(msg, id, meta) {
     var list = document.getElementById("notif-list");
     if (!list) return;
@@ -141,9 +147,14 @@
     var li = document.createElement("li");
     li.dataset.id = id || "";
     if (meta && meta.type) li.dataset.type = meta.type;
+    var level = (meta && meta.level) || (meta && meta.type === "urgent" ? "urgent" : meta && meta.type === "urgent_filled" ? "high" : "normal");
+    li.dataset.level = level;
+    li.classList.add("notif-level-" + level);
     var time = meta && meta.created_at ? new Date(meta.created_at) : new Date();
+    var badge = '<span class="notif-level-badge lv-' + level + '">' + levelLabel(level) + "</span> ";
     var title = meta && meta.title ? "<strong>" + escapeHtml(meta.title) + "</strong><br>" : "";
     li.innerHTML =
+      badge +
       title +
       "<span>" +
       escapeHtml(msg) +
@@ -341,24 +352,24 @@
       addToPanel(n.body || n.title || "", n.id, {
         title: n.title,
         type: n.type,
+        level: n.level,
         created_at: n.created_at,
         link: n.link
       });
 
       /* 未プッシュかつ未読のみプッシュ（再読込での連打を抑制しつつ取りこぼし防止） */
       if (!pushed[n.id] && !read[n.id]) {
-        if (
-          n.type === "urgent" ||
-          n.type === "direct" ||
-          n.type === "broadcast" ||
-          n.type === "urgent_filled"
-        ) {
+        var lv = n.level || (n.type === "urgent" ? "urgent" : n.type === "urgent_filled" ? "high" : n.type === "direct" ? "high" : "normal");
+        /* 低レベルはベルのみ。通常以上はプッシュ */
+        if (lv !== "low") {
           showPush(n.title || "G⁵ Portal", n.body || "", {
             tag: "g5-n-" + n.id,
             link: n.link || "shift.html",
             data: { id: n.id, link: n.link || "shift.html" },
-            renotify: true
+            renotify: lv === "urgent" || lv === "high"
           });
+          markPushed(n.id);
+        } else {
           markPushed(n.id);
         }
       }
@@ -449,6 +460,7 @@
           title: "急募終了",
           body: msg,
           type: "urgent_filled",
+          level: "high",
           link: "shift.html"
         });
       }
@@ -569,6 +581,7 @@
       title: payload.title || "お知らせ",
       body: payload.body || "",
       type: payload.type || "broadcast",
+      level: payload.level || "normal",
       link: payload.link || "",
       created_at: new Date().toISOString()
     };
@@ -647,28 +660,38 @@
 
   function startPolling() {
     renderInboxFromStore();
+    if (window.__G5_NOTIF_WIPED__) {
+      var list = document.getElementById("notif-list");
+      if (list) list.innerHTML = "";
+      updateBadge(0);
+    }
     pollServerNotifications();
-    schedulePoll(false);
-    /* タブ復帰・オンライン復帰で即時取得 */
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") {
+    /* サイト共通リアルタイムハブがあればそれに乗せる */
+    if (window.G5Realtime && G5Realtime.subscribe) {
+      G5Realtime.subscribe(function () {
+        pollServerNotifications();
+      });
+    } else {
+      schedulePoll(false);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") {
+          pollServerNotifications();
+          schedulePoll(false);
+        }
+      });
+      window.addEventListener("focus", function () {
+        pollServerNotifications();
+      });
+      window.addEventListener("online", function () {
+        failStreak = 0;
         pollServerNotifications();
         schedulePoll(false);
-      }
-    });
-    window.addEventListener("focus", function () {
-      pollServerNotifications();
-    });
-    window.addEventListener("online", function () {
-      failStreak = 0;
-      pollServerNotifications();
-      schedulePoll(false);
-    });
-    /* ログイン直後の許可リクエスト */
+      });
+    }
     if (window.G5 && G5.getSession && G5.getSession()) {
       setTimeout(function () {
         requestPermission();
-      }, 1500);
+      }, 1200);
     }
   }
 

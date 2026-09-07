@@ -206,3 +206,38 @@ a:hover { color: var(--cyan); text-shadow: 0 0 10px rgba(0, 245, 255, 0.4); }
   text-align: center;
   padding: 2.5rem 1rem;
 }
+
+/* notification levels */
+.notif-level-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+.notif-level-badge.lv-urgent {
+  background: rgba(255, 60, 60, 0.35);
+  color: #ffb4b4;
+}
+.notif-level-badge.lv-high {
+  background: rgba(255, 107, 53, 0.3);
+  color: #ffc9a8;
+}
+.notif-level-badge.lv-normal {
+  background: rgba(0, 245, 255, 0.18);
+  color: #9ef6ff;
+}
+.notif-level-badge.lv-low {
+  background: rgba(255,255,255,0.08);
+  color: #a89bb8;
+}
+#notif-list li.notif-level-urgent {
+  border-left: 3px solid #ff3c3c;
+  padding-left: 0.5rem;
+}
+#notif-list li.notif-level-high {
+  border-left: 3px solid #ff6b35;
+  padding-left: 0.5rem;
+}

@@ -42,3 +42,33 @@
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); border: 0;
 }
+
+.chat-mode-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.chat-mode-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.chat-mode-btn.active {
+  background: rgba(255, 45, 149, 0.22);
+  border-color: rgba(255, 45, 149, 0.45);
+  color: #fff;
+}
+.chat-bubble.pending { opacity: 0.65; }
+#chat-dm-peer {
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+}

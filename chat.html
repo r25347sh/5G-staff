@@ -16,8 +16,8 @@
   <div id="notif-panel" class="notif-panel" hidden><div class="notif-panel-header">通知</div><ul id="notif-list"></ul></div>
   <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
   <header class="page-header">
-    <h1>クラスチャット</h1>
-    <p>5年G組スタッフ用グループチャット</p>
+    <h1>チャット</h1>
+    <p>全体チャット ／ 生徒同士の1対1（DM）</p>
     <nav class="page-nav" aria-label="ページナビ">
       <a href="index.html">ホーム</a>
       <a href="shift.html">シフト</a>
@@ -31,14 +31,22 @@
       <span id="chat-session" class="session-label"></span>
       <button type="button" class="btn btn-ghost btn-sm" id="btn-chat-refresh">更新</button>
     </div>
+    <div id="chat-mode-bar" class="chat-mode-bar" hidden>
+      <button type="button" class="chat-mode-btn active" data-mode="global">全体</button>
+      <button type="button" class="chat-mode-btn" data-mode="dm">1対1（DM）</button>
+      <div id="chat-dm-wrap" hidden style="flex:1;min-width:12rem;">
+        <label class="sr-only" for="chat-dm-peer">相手</label>
+        <select id="chat-dm-peer" style="width:100%;"></select>
+      </div>
+    </div>
     <div id="chat-need-login" class="admin-card" hidden>
-      <p>チャットの送信にはログインが必要です。</p>
+      <p>チャットの送信にはログインが必要です。生徒同士の会話も可能です。</p>
       <a class="btn btn-primary" href="login.html?next=chat.html">ログインする</a>
     </div>
     <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
     <form id="chat-form" class="chat-form" hidden>
       <label for="chat-input" class="sr-only">メッセージ</label>
-      <input type="text" id="chat-input" maxlength="500" placeholder="メッセージを入力…" autocomplete="off">
+      <input type="text" id="chat-input" maxlength="500" placeholder="メッセージを入力…（生徒同士OK）" autocomplete="off">
       <button type="submit" class="btn btn-primary">送信</button>
     </form>
     <p id="chat-msg" class="msg" role="status"></p>
@@ -46,6 +54,7 @@
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
   <script src="js/common.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/realtime.js"></script>
   <script src="js/notif.js"></script>
   <script src="js/chat.js"></script>
 </body>

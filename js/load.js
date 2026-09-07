@@ -6,7 +6,7 @@
  */
 (function () {
   "use strict";
-  var CACHE_VER = "20260907a";
+  var CACHE_VER = "20260907b";
 
   function detectBase() {
     var path = location.pathname;
@@ -113,7 +113,7 @@
   injectCss(p(pageCss) + q);
 
   /* JS は依存順だが並列プリロード風に直列完了 */
-  var jsQueue = [p("js/common.js") + q, p("js/api.js") + q, p("js/notif.js") + q, p("menu/menu.js") + q];
+  var jsQueue = [p("js/common.js") + q, p("js/api.js") + q, p("js/realtime.js") + q, p("js/notif.js") + q, p("menu/menu.js") + q];
   function loadNext(i) {
     if (i >= jsQueue.length) {
       if ("serviceWorker" in navigator) {

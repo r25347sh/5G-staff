@@ -470,6 +470,7 @@
         title: title,
         body: body,
         type: "urgent",
+        level: "urgent",
         link: "shift.html"
       });
       sent.push(s.shift_id);
@@ -549,6 +550,7 @@
     var title = (document.getElementById("notify-title") || {}).value || "";
     var body = (document.getElementById("notify-body") || {}).value || "";
     var link = (document.getElementById("notify-link") || {}).value || "";
+    var level = (document.getElementById("notify-level") || {}).value || "normal";
     title = title.trim();
     body = body.trim();
     if (!title || !body) {
@@ -579,6 +581,7 @@
         title: title,
         body: body,
         type: mode === "all" || mode === "students" ? "broadcast" : "direct",
+        level: level,
         link: link
       });
       showMsg(msg, "送信しました");
