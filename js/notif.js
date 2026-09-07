@@ -1,10 +1,10 @@
 /**
- * G⁵ Portal - notifications
- * - サイト内ベルパネル
- * - Browser Push (Notification API / SW)
- * - サーバ通知 (notifications.json) のポーリング
- * - シフト間近・急募開始/終了
- * - LIFF 環境なら liff 経由の表示も試行
+ * G⁵ Portal - notifications（確実性強化版）
+ * - サイト内ベル + Browser/SW プッシュ
+ * - notifications.json ポーリング（短間隔・可視時即時・オンライン復帰）
+ * - 受信トレイ localStorage 永続化（再読込でも残る）
+ * - 急募は admin/teacher 含む全員へ
+ * - 送信リトライ
  */
 (function () {
   "use strict";
@@ -12,9 +12,26 @@
   var URGENT_KEY = "g5_notified_urgent_filled";
   var URGENT_OPEN_KEY = "g5_notified_urgent_open";
   var READ_KEY = "g5_notif_read";
-  var POLL_MS = 25000;
+  var PUSHED_KEY = "g5_notif_pushed";
+  var INBOX_KEY = "g5_notif_inbox";
+  var POLL_MS = 10000;
+  var POLL_FAIL_MS = 20000;
   var pollTimer = null;
-  var lastServerIds = {};
+  var polling = false;
+  var failStreak = 0;
+  var bc = null;
+
+  try {
+    if (typeof BroadcastChannel !== "undefined") {
+      bc = new BroadcastChannel("g5_notif");
+      bc.onmessage = function (ev) {
+        if (ev.data && ev.data.type === "inbox") {
+          renderInboxFromStore();
+          updateBadge(countUnread() + countLocalNear());
+        }
+      };
+    }
+  } catch (e) {}
 
   function getList(key) {
     try {
@@ -24,22 +41,75 @@
     }
   }
   function setList(key, arr) {
-    localStorage.setItem(key, JSON.stringify(arr.slice(-120)));
+    try {
+      localStorage.setItem(key, JSON.stringify(arr.slice(-150)));
+    } catch (e) {}
   }
   function getReadSet() {
-    var arr = getList(READ_KEY);
     var o = {};
-    arr.forEach(function (id) {
+    getList(READ_KEY).forEach(function (id) {
+      o[id] = true;
+    });
+    return o;
+  }
+  function getPushedSet() {
+    var o = {};
+    getList(PUSHED_KEY).forEach(function (id) {
       o[id] = true;
     });
     return o;
   }
   function markRead(id) {
+    if (!id) return;
     var arr = getList(READ_KEY);
     if (arr.indexOf(id) === -1) {
       arr.push(id);
       setList(READ_KEY, arr);
     }
+    broadcastInbox();
+  }
+  function markPushed(id) {
+    if (!id) return;
+    var arr = getList(PUSHED_KEY);
+    if (arr.indexOf(id) === -1) {
+      arr.push(id);
+      setList(PUSHED_KEY, arr);
+    }
+  }
+
+  /** 永続受信トレイ */
+  function loadInbox() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(INBOX_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveInbox(items) {
+    try {
+      localStorage.setItem(INBOX_KEY, JSON.stringify(items.slice(0, 40)));
+    } catch (e) {}
+  }
+  function mergeInbox(item) {
+    if (!item || !item.id) return;
+    var inbox = loadInbox();
+    var idx = -1;
+    for (var i = 0; i < inbox.length; i++) {
+      if (inbox[i].id === item.id) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx >= 0) inbox[idx] = item;
+    else inbox.unshift(item);
+    saveInbox(inbox);
+    broadcastInbox();
+  }
+  function broadcastInbox() {
+    try {
+      if (bc) bc.postMessage({ type: "inbox" });
+    } catch (e) {}
   }
 
   function updateBadge(count) {
@@ -53,11 +123,19 @@
     }
   }
 
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function addToPanel(msg, id, meta) {
     var list = document.getElementById("notif-list");
     if (!list) return;
     if (id) {
-      var exists = list.querySelector('[data-id="' + id.replace(/"/g, "") + '"]');
+      var exists = list.querySelector('[data-id="' + String(id).replace(/"/g, "") + '"]');
       if (exists) return;
     }
     var li = document.createElement("li");
@@ -70,7 +148,12 @@
       "<span>" +
       escapeHtml(msg) +
       "</span><time>" +
-      time.toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) +
+      time.toLocaleString("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) +
       "</time>";
     if (meta && meta.link) {
       li.style.cursor = "pointer";
@@ -80,46 +163,67 @@
       });
     }
     list.prepend(li);
-    while (list.children.length > 30) list.lastChild.remove();
+    while (list.children.length > 35) list.lastChild.remove();
   }
 
-  function escapeHtml(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+  function renderInboxFromStore() {
+    var list = document.getElementById("notif-list");
+    if (!list) return;
+    var inbox = loadInbox();
+    var session = window.G5 && G5.getSession && G5.getSession();
+    inbox
+      .slice()
+      .reverse()
+      .forEach(function (n) {
+        if (!n || !n.id) return;
+        if (session && !isTargetedToMe(n, session)) return;
+        addToPanel(n.body || n.title || "", n.id, {
+          title: n.title,
+          type: n.type,
+          created_at: n.created_at,
+          link: n.link
+        });
+      });
   }
 
   async function requestPermission() {
     if (!("Notification" in window)) return false;
     if (Notification.permission === "granted") return true;
     if (Notification.permission !== "denied") {
-      var p = await Notification.requestPermission();
-      return p === "granted";
+      try {
+        var p = await Notification.requestPermission();
+        return p === "granted";
+      } catch (e) {
+        return false;
+      }
     }
     return false;
   }
 
   function showPush(title, body, opts) {
     opts = opts || {};
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-    try {
-      var n = new Notification(title || "G⁵ Portal", {
-        body: body || "",
-        icon: (window.G5 && G5.BASE ? G5.BASE + "/" : "") + "icons/icon-192.png",
-        badge: (window.G5 && G5.BASE ? G5.BASE + "/" : "") + "icons/icon-192.png",
-        tag: opts.tag || "g5-" + Date.now(),
-        data: opts.data || {}
-      });
-      n.onclick = function () {
-        window.focus();
-        if (opts.link) location.href = opts.link;
-        n.close();
-      };
-    } catch (e) {}
-    /* Service Worker 経由（PWA） */
+    var iconBase = (window.G5 && G5.BASE ? G5.BASE + "/" : "") + "icons/icon-192.png";
+    var shown = false;
+    if ("Notification" in window && Notification.permission === "granted") {
+      try {
+        var n = new Notification(title || "G⁵ Portal", {
+          body: body || "",
+          icon: iconBase,
+          badge: iconBase,
+          tag: opts.tag || "g5-" + Date.now(),
+          renotify: !!opts.renotify,
+          data: opts.data || { link: opts.link || "" }
+        });
+        n.onclick = function () {
+          try {
+            window.focus();
+          } catch (e) {}
+          if (opts.link) location.href = opts.link;
+          n.close();
+        };
+        shown = true;
+      } catch (e) {}
+    }
     if (navigator.serviceWorker && navigator.serviceWorker.ready) {
       navigator.serviceWorker.ready
         .then(function (reg) {
@@ -127,91 +231,53 @@
             return reg.showNotification(title || "G⁵ Portal", {
               body: body || "",
               icon: "icons/icon-192.png",
+              badge: "icons/icon-192.png",
               tag: opts.tag || "g5-sw-" + Date.now(),
-              data: opts.data || {}
+              renotify: !!opts.renotify,
+              data: opts.data || { link: opts.link || "" }
             });
           }
         })
         .catch(function () {});
+      shown = true;
     }
-    /* LIFF 内ならコンソールのみ（チャネル未設定時は noop） */
-    try {
-      if (window.liff && typeof window.liff.isInClient === "function" && window.liff.isInClient()) {
-        /* LINE 内ブラウザ: Notification が制限される場合があるためパネル優先 */
-      }
-    } catch (e) {}
+    return shown;
   }
 
   function isTargetedToMe(n, session) {
     if (!session) return false;
     var to = n.to;
     if (to === "all" || to == null) return true;
-    if (to === "students") return session.role === "student" || session.role === "temporary";
-    if (to === "staff") return ["admin", "teacher", "temporary"].indexOf(session.role) !== -1;
-    if (Array.isArray(to)) return to.indexOf(session.id) !== -1;
+    if (to === "students") {
+      return session.role === "student" || session.role === "temporary";
+    }
+    if (to === "staff") {
+      return ["admin", "teacher", "temporary"].indexOf(session.role) !== -1;
+    }
+    /* 複合: ["all"] や ロール混在は配列で user id またはロールキーワード */
+    if (Array.isArray(to)) {
+      if (to.indexOf("all") !== -1) return true;
+      if (to.indexOf(session.id) !== -1) return true;
+      if (to.indexOf("staff") !== -1 && ["admin", "teacher", "temporary"].indexOf(session.role) !== -1)
+        return true;
+      if (
+        to.indexOf("students") !== -1 &&
+        (session.role === "student" || session.role === "temporary")
+      )
+        return true;
+      return false;
+    }
     return to === session.id;
   }
 
-  /** サーバ通知を取得してパネル＆プッシュ */
-  async function pollServerNotifications() {
+  function countUnread() {
+    var read = getReadSet();
     var session = window.G5 && G5.getSession && G5.getSession();
-    if (!session) {
-      updateBadge(countUnreadInPanel());
-      return;
-    }
-    var list;
-    try {
-      if (window.G5Api) list = await G5Api.fetchJson("src/data/notifications.json");
-      else {
-        var base = (window.G5 && G5.BASE) || ".";
-        var res = await fetch(base + "/src/data/notifications.json?t=" + Date.now());
-        list = await res.json();
-      }
-    } catch (e) {
-      return;
-    }
-    if (!Array.isArray(list)) list = [];
-    var read = getReadSet();
-    var unread = 0;
-    /* 新しい順 */
-    list
-      .slice()
-      .sort(function (a, b) {
-        return (b.created_at || "").localeCompare(a.created_at || "");
-      })
-      .forEach(function (n) {
-        if (!n || !n.id) return;
-        if (!isTargetedToMe(n, session)) return;
-        if (!read[n.id]) unread++;
-        addToPanel(n.body || n.title || "", n.id, {
-          title: n.title,
-          type: n.type,
-          created_at: n.created_at,
-          link: n.link
-        });
-        if (!lastServerIds[n.id] && !read[n.id]) {
-          /* 初回検知のみプッシュ */
-          if (n.type === "urgent" || n.type === "direct" || n.type === "broadcast") {
-            showPush(n.title || "G⁵ Portal", n.body || "", {
-              tag: "g5-n-" + n.id,
-              link: n.link,
-              data: { id: n.id }
-            });
-          }
-        }
-        lastServerIds[n.id] = true;
-      });
-    updateBadge(unread + countLocalNear());
-  }
-
-  function countUnreadInPanel() {
-    var read = getReadSet();
-    var list = document.getElementById("notif-list");
-    if (!list) return 0;
     var c = 0;
-    list.querySelectorAll("li[data-id]").forEach(function (li) {
-      var id = li.dataset.id;
-      if (id && !read[id]) c++;
+    loadInbox().forEach(function (n) {
+      if (!n || !n.id) return;
+      if (session && !isTargetedToMe(n, session)) return;
+      if (!read[n.id]) c++;
     });
     return c;
   }
@@ -221,10 +287,91 @@
     return localNearCount;
   }
 
+  /** サーバ通知を取得してパネル＆プッシュ（失敗時も次回再試行） */
+  async function pollServerNotifications() {
+    if (polling) return;
+    polling = true;
+    var session = window.G5 && G5.getSession && G5.getSession();
+    if (!session) {
+      updateBadge(0);
+      polling = false;
+      return;
+    }
+    var list;
+    try {
+      if (window.G5Api) list = await G5Api.fetchJson("src/data/notifications.json");
+      else {
+        var base = (window.G5 && G5.BASE) || ".";
+        var res = await fetch(base + "/src/data/notifications.json?t=" + Date.now(), {
+          cache: "no-store"
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        list = await res.json();
+      }
+      failStreak = 0;
+    } catch (e) {
+      failStreak++;
+      polling = false;
+      schedulePoll(true);
+      return;
+    }
+    if (!Array.isArray(list)) list = [];
+
+    var read = getReadSet();
+    var pushed = getPushedSet();
+    var sorted = list.slice().sort(function (a, b) {
+      return (b.created_at || "").localeCompare(a.created_at || "");
+    });
+
+    sorted.forEach(function (n) {
+      if (!n || !n.id) return;
+      if (!isTargetedToMe(n, session)) return;
+
+      mergeInbox({
+        id: n.id,
+        to: n.to,
+        title: n.title,
+        body: n.body,
+        type: n.type,
+        link: n.link,
+        created_at: n.created_at,
+        from_name: n.from_name
+      });
+
+      addToPanel(n.body || n.title || "", n.id, {
+        title: n.title,
+        type: n.type,
+        created_at: n.created_at,
+        link: n.link
+      });
+
+      /* 未プッシュかつ未読のみプッシュ（再読込での連打を抑制しつつ取りこぼし防止） */
+      if (!pushed[n.id] && !read[n.id]) {
+        if (
+          n.type === "urgent" ||
+          n.type === "direct" ||
+          n.type === "broadcast" ||
+          n.type === "urgent_filled"
+        ) {
+          showPush(n.title || "G⁵ Portal", n.body || "", {
+            tag: "g5-n-" + n.id,
+            link: n.link || "shift.html",
+            data: { id: n.id, link: n.link || "shift.html" },
+            renotify: true
+          });
+          markPushed(n.id);
+        }
+      }
+    });
+
+    updateBadge(countUnread() + countLocalNear());
+    polling = false;
+  }
+
   function checkNearShifts(shifts, session) {
     if (!shifts || !session) {
       localNearCount = 0;
-      updateBadge(countUnreadInPanel());
+      updateBadge(countUnread());
       return;
     }
     var notified = getList(NEAR_KEY);
@@ -237,23 +384,42 @@
       var key = s.shift_id + "_" + (s.date || "") + "_" + s.time_start;
       if (notified.indexOf(key) === -1) {
         notified.push(key);
-        var msg = "まもなくシフト開始（10分前）: " + s.time_start + "–" + s.time_end + "（" + (s.tanto || "") + "）";
-        addToPanel(msg, "near_" + key, { title: "シフト間近", type: "near" });
-        showPush("G⁵ Portal シフト間近", msg, { tag: "near-" + key });
+        var msg =
+          "まもなくシフト開始（10分前）: " +
+          s.time_start +
+          "–" +
+          s.time_end +
+          "（" +
+          (s.tanto || "") +
+          "）";
+        var id = "near_" + key;
+        addToPanel(msg, id, { title: "シフト間近", type: "near" });
+        mergeInbox({
+          id: id,
+          to: session.id,
+          title: "シフト間近",
+          body: msg,
+          type: "near",
+          link: "shift.html",
+          created_at: new Date().toISOString()
+        });
+        showPush("G⁵ Portal シフト間近", msg, { tag: "near-" + key, link: "shift.html" });
         requestPermission();
       }
     });
     setList(NEAR_KEY, notified);
     localNearCount = nearCount;
-    updateBadge(nearCount + countUnreadInPanel());
+    updateBadge(nearCount + countUnread());
   }
 
-  function notifyUrgentFilled(shift) {
+  /** 急募終了（ローカル＋サーバへ staff/all 通知） */
+  async function notifyUrgentFilled(shift) {
     var key = "filled_" + (shift.shift_id || "");
     var notified = getList(URGENT_KEY);
     if (notified.indexOf(key) !== -1) return;
     notified.push(key);
     setList(URGENT_KEY, notified);
+
     var msg =
       "急募終了: " +
       (shift.time_start || "") +
@@ -262,9 +428,33 @@
       "（" +
       (shift.tanto || "") +
       "）定員に達しました";
-    addToPanel(msg, key, { title: "急募終了", type: "urgent" });
-    showPush("G⁵ Portal 急募終了", msg, { tag: key });
+    addToPanel(msg, key, { title: "急募終了", type: "urgent_filled", link: "shift.html" });
+    mergeInbox({
+      id: key,
+      to: "all",
+      title: "急募終了",
+      body: msg,
+      type: "urgent_filled",
+      link: "shift.html",
+      created_at: new Date().toISOString()
+    });
+    showPush("G⁵ Portal 急募終了", msg, { tag: key, link: "shift.html", renotify: true });
     requestPermission();
+
+    /* 管理者含む全員にサーバ通知（他端末でも届く） */
+    try {
+      if (window.G5Api && G5.getSession()) {
+        await sendNotification({
+          to: "all",
+          title: "急募終了",
+          body: msg,
+          type: "urgent_filled",
+          link: "shift.html"
+        });
+      }
+    } catch (e) {
+      console.warn("urgent_filled server notif", e);
+    }
   }
 
   function checkUrgentFilled(shifts, session) {
@@ -276,34 +466,64 @@
       if (filled < needed) return;
       var key = "filled_" + s.shift_id;
       if (notified.indexOf(key) !== -1) return;
+
+      /* admin/teacher は常に受信。それ以外は対象者のみ */
       if (session) {
-        var target = s.target;
-        if (target && target !== "all") {
-          var arr = Array.isArray(target) ? target : [target];
-          if (arr.indexOf(session.id) === -1) return;
+        var isStaff = ["admin", "teacher"].indexOf(session.role) !== -1;
+        if (!isStaff) {
+          var target = s.target;
+          if (target && target !== "all") {
+            var arr = Array.isArray(target) ? target : [target];
+            if (arr.indexOf(session.id) === -1) return;
+          }
         }
       }
+
       notified.push(key);
-      var msg = "急募終了: " + (s.time_start || "") + "–" + (s.time_end || "") + "（" + (s.tanto || "") + "）";
-      addToPanel(msg, key, { title: "急募終了", type: "urgent" });
-      showPush("G⁵ Portal 急募終了", msg, { tag: key });
+      var msg =
+        "急募終了: " +
+        (s.time_start || "") +
+        "–" +
+        (s.time_end || "") +
+        "（" +
+        (s.tanto || "") +
+        "）";
+      addToPanel(msg, key, { title: "急募終了", type: "urgent_filled", link: "shift.html" });
+      mergeInbox({
+        id: key,
+        to: "all",
+        title: "急募終了",
+        body: msg,
+        type: "urgent_filled",
+        link: "shift.html",
+        created_at: new Date().toISOString()
+      });
+      showPush("G⁵ Portal 急募終了", msg, { tag: key, link: "shift.html" });
     });
     setList(URGENT_KEY, notified);
   }
 
-  /** 急募「開始」をローカルでも検知（サーバ通知と併用） */
+  /** 急募開始のローカル検知（admin は常に通知） */
   function checkUrgentOpened(shifts, session) {
     if (!shifts || !session) return;
     var notified = getList(URGENT_OPEN_KEY);
+    var isStaff = ["admin", "teacher"].indexOf(session.role) !== -1;
     shifts.forEach(function (s) {
       if (!s.urgent || !s.open) return;
       var key = "open_" + s.shift_id;
       if (notified.indexOf(key) !== -1) return;
+
       var target = s.target;
-      if (target && target !== "all") {
-        var arr = Array.isArray(target) ? target : [target];
-        if (arr.indexOf(session.id) === -1) return;
+      var allowed = isStaff;
+      if (!allowed) {
+        if (!target || target === "all") allowed = true;
+        else {
+          var arr = Array.isArray(target) ? target : [target];
+          allowed = arr.indexOf(session.id) !== -1;
+        }
       }
+      if (!allowed) return;
+
       notified.push(key);
       var msg =
         "急募: " +
@@ -314,15 +534,28 @@
         (s.tanto || "") +
         "）募集中";
       addToPanel(msg, key, { title: "急募のお知らせ", type: "urgent", link: "shift.html" });
-      showPush("G⁵ Portal 急募", msg, { tag: key, link: "shift.html" });
+      mergeInbox({
+        id: key,
+        to: isStaff ? "staff" : session.id,
+        title: "急募のお知らせ",
+        body: msg,
+        type: "urgent",
+        link: "shift.html",
+        created_at: new Date().toISOString()
+      });
+      showPush("G⁵ Portal 急募", msg, {
+        tag: key,
+        link: "shift.html",
+        renotify: true
+      });
       requestPermission();
     });
     setList(URGENT_OPEN_KEY, notified);
   }
 
   /**
-   * 通知をサーバに追加（admin/teacher 用）
-   * to: "all" | "students" | string[] | string
+   * 通知をサーバに追加（リトライ付き）
+   * to: "all" | "students" | "staff" | string | string[]
    */
   async function sendNotification(payload) {
     if (!window.G5Api) throw new Error("G5Api required");
@@ -339,18 +572,42 @@
       link: payload.link || "",
       created_at: new Date().toISOString()
     };
-    await G5Api.updateJson(
-      "src/data/notifications.json",
-      function (list) {
-        if (!Array.isArray(list)) list = [];
-        list.push(item);
-        /* 直近 200 件保持 */
-        if (list.length > 200) list = list.slice(-200);
-        return list;
-      },
-      "notif: " + item.title
-    );
-    return item;
+    var lastErr;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        await G5Api.updateJson(
+          "src/data/notifications.json",
+          function (list) {
+            if (!Array.isArray(list)) list = [];
+            /* 同一 id が無ければ追加（競合時の二重防止は uid 側） */
+            list.push(item);
+            if (list.length > 200) list = list.slice(-200);
+            return list;
+          },
+          "notif: " + item.title
+        );
+        /* 送信者自身のトレイにも即反映 */
+        if (isTargetedToMe(item, session)) {
+          mergeInbox(item);
+          addToPanel(item.body || item.title, item.id, {
+            title: item.title,
+            type: item.type,
+            created_at: item.created_at,
+            link: item.link
+          });
+          updateBadge(countUnread() + countLocalNear());
+        }
+        /* 他タブ・他クライアント向けにすぐポーリング */
+        setTimeout(pollServerNotifications, 800);
+        return item;
+      } catch (e) {
+        lastErr = e;
+        await new Promise(function (r) {
+          setTimeout(r, 500 * (attempt + 1));
+        });
+      }
+    }
+    throw lastErr || new Error("通知送信に失敗しました");
   }
 
   function initBell() {
@@ -363,7 +620,6 @@
       if (!panel.hidden) {
         requestPermission();
         pollServerNotifications();
-        /* 開いたら表示中を既読に */
         var list = document.getElementById("notif-list");
         if (list) {
           list.querySelectorAll("li[data-id]").forEach(function (li) {
@@ -381,10 +637,39 @@
     });
   }
 
+  function schedulePoll(fromFail) {
+    if (pollTimer) clearInterval(pollTimer);
+    var ms = fromFail && failStreak > 0 ? POLL_FAIL_MS : POLL_MS;
+    pollTimer = setInterval(function () {
+      pollServerNotifications();
+    }, ms);
+  }
+
   function startPolling() {
-    if (pollTimer) return;
+    renderInboxFromStore();
     pollServerNotifications();
-    pollTimer = setInterval(pollServerNotifications, POLL_MS);
+    schedulePoll(false);
+    /* タブ復帰・オンライン復帰で即時取得 */
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        pollServerNotifications();
+        schedulePoll(false);
+      }
+    });
+    window.addEventListener("focus", function () {
+      pollServerNotifications();
+    });
+    window.addEventListener("online", function () {
+      failStreak = 0;
+      pollServerNotifications();
+      schedulePoll(false);
+    });
+    /* ログイン直後の許可リクエスト */
+    if (window.G5 && G5.getSession && G5.getSession()) {
+      setTimeout(function () {
+        requestPermission();
+      }, 1500);
+    }
   }
 
   window.G5Notif = {

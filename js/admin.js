@@ -424,7 +424,7 @@
     }
   }
 
-  /** 急募中の枠について対象者へ通知（shift_id 単位で1回） */
+  /** 急募中の枠について対象者＋管理者へ通知（shift_id 単位で1回） */
   async function notifyUrgentShifts(shifts) {
     if (!window.G5Notif || !G5Notif.sendNotification) return;
     var sent = [];
@@ -439,7 +439,7 @@
       var filled = s.slots_filled || (s.assignees && s.assignees.length) || 0;
       var needed = s.slots_needed || 1;
       if (filled >= needed) continue;
-      var to = s.target === "all" || !s.target ? "students" : s.target;
+
       var title = "急募のお知らせ";
       var body =
         (s.time_start || "") +
@@ -449,6 +449,22 @@
         (s.tanto || "") +
         "）募集中" +
         (s.note ? " — " + s.note : "");
+
+      /*
+       * 宛先:
+       * - 全員対象 → to: "all"（admin / teacher / student すべて）
+       * - 個別対象 → 対象 user id 配列 + "staff"（管理者にも必ず届く）
+       */
+      var to;
+      if (s.target === "all" || !s.target) {
+        to = "all";
+      } else if (Array.isArray(s.target)) {
+        to = s.target.slice();
+        if (to.indexOf("staff") === -1) to.push("staff");
+      } else {
+        to = [s.target, "staff"];
+      }
+
       await G5Notif.sendNotification({
         to: to,
         title: title,
