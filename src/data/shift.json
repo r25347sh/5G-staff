@@ -108,5 +108,35 @@
     "tanto": "総務",
     "open": false,
     "urgent": false
+  },
+  {
+    "shift_id": "u7wg9d8rp",
+    "user_id": "open",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "15:00",
+    "tanto": "大富豪",
+    "open": true,
+    "urgent": true,
+    "note": "みんなおうぼしてー！",
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": []
+  },
+  {
+    "shift_id": "ucx7vxb9m",
+    "user_id": "open",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "15:00",
+    "tanto": "大富豪",
+    "open": true,
+    "urgent": true,
+    "note": "みんなおうぼしてー！",
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": []
   }
 ]
