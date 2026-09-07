@@ -11,17 +11,20 @@
   },
   {
     "shift_id": "u3lnuku8u",
-    "user_id": "open",
+    "user_id": "r25347sh",
     "date": "2026-09-12",
     "time_start": "13:00",
     "time_end": "17:00",
     "tanto": "受付",
-    "open": true,
-    "urgent": true,
+    "open": false,
+    "urgent": false,
     "note": "",
     "target": "all",
     "slots_needed": 1,
-    "slots_filled": 0,
-    "assignees": []
+    "slots_filled": 1,
+    "assignees": [
+      "r25347sh"
+    ],
+    "filled_at": "2026-09-07T00:01:38.739Z"
   }
 ]
