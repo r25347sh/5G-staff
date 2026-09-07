@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "n_mtruyj5l00nfz",
+    "from_id": "r25347sh",
+    "from_name": "管理者",
+    "to": "all",
+    "title": "急募のお知らせ",
+    "body": "13:00–15:00（大富豪）募集中 — みんなおうぼしてー！",
+    "type": "urgent",
+    "level": "urgent",
+    "link": "shift.html",
+    "created_at": "2026-09-07T23:14:44.217Z"
+  }
+]
