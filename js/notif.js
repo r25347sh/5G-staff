@@ -310,8 +310,25 @@
     }
     var list;
     try {
-      if (window.G5Api) list = await G5Api.fetchJson("src/data/notifications.json");
-      else {
+      if (window.G5Supabase && G5Supabase.fetchNotifications) {
+        var rows = await G5Supabase.fetchNotifications(session.id);
+        list = (rows || []).map(function (n) {
+          return {
+            id: n.id,
+            from_id: n.author_id,
+            from_name: n.author_name,
+            to: n.target === "all" || n.target == null ? "all" : n.target,
+            title: n.title,
+            body: n.body,
+            type: n.type || "broadcast",
+            level: n.level || "normal",
+            link: n.link || "",
+            created_at: n.created_at
+          };
+        });
+      } else if (window.G5Api) {
+        list = await G5Api.fetchJson("src/data/notifications.json");
+      } else {
         var base = (window.G5 && G5.BASE) || ".";
         var res = await fetch(base + "/src/data/notifications.json?t=" + Date.now(), {
           cache: "no-store"
@@ -570,14 +587,14 @@
    * to: "all" | "students" | "staff" | string | string[]
    */
   async function sendNotification(payload) {
-    if (!window.G5Api) throw new Error("G5Api required");
     var session = G5.getSession();
     if (!session) throw new Error("ログインが必要です");
+    var to = payload.to == null ? "all" : payload.to;
     var item = {
-      id: G5Api.uid("n"),
+      id: null,
       from_id: session.id,
       from_name: session.name || session.id,
-      to: payload.to == null ? "all" : payload.to,
+      to: to,
       title: payload.title || "お知らせ",
       body: payload.body || "",
       type: payload.type || "broadcast",
@@ -585,21 +602,23 @@
       link: payload.link || "",
       created_at: new Date().toISOString()
     };
-    var lastErr;
-    for (var attempt = 0; attempt < 3; attempt++) {
+
+    /* 1) Supabase 優先 */
+    if (window.G5Supabase && G5Supabase.createNotification) {
       try {
-        await G5Api.updateJson(
-          "src/data/notifications.json",
-          function (list) {
-            if (!Array.isArray(list)) list = [];
-            /* 同一 id が無ければ追加（競合時の二重防止は uid 側） */
-            list.push(item);
-            if (list.length > 200) list = list.slice(-200);
-            return list;
-          },
-          "notif: " + item.title
-        );
-        /* 送信者自身のトレイにも即反映 */
+        var row = await G5Supabase.createNotification({
+          title: item.title,
+          body: item.body,
+          author_id: item.from_id,
+          author_name: item.from_name,
+          author_role: session.role || null,
+          target: to,
+          type: item.type,
+          level: item.level,
+          link: item.link || null,
+          created_at: item.created_at
+        });
+        item.id = row.id;
         if (isTargetedToMe(item, session)) {
           mergeInbox(item);
           addToPanel(item.body || item.title, item.id, {
@@ -610,7 +629,43 @@
           });
           updateBadge(countUnread() + countLocalNear());
         }
-        /* 他タブ・他クライアント向けにすぐポーリング */
+        setTimeout(pollServerNotifications, 500);
+        /* メール通知（Edge Function 経由・設定済みなら） */
+        try {
+          if (G5Supabase.notifyEmail) G5Supabase.notifyEmail(item);
+        } catch (ee) {}
+        return item;
+      } catch (e) {
+        console.warn("Supabase notif failed, fallback JSON", e);
+      }
+    }
+
+    /* 2) フォールバック: notifications.json */
+    if (!window.G5Api) throw new Error("通知送信先がありません（Supabase / G5Api）");
+    item.id = G5Api.uid("n");
+    var lastErr;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        await G5Api.updateJson(
+          "src/data/notifications.json",
+          function (list) {
+            if (!Array.isArray(list)) list = [];
+            list.push(item);
+            if (list.length > 200) list = list.slice(-200);
+            return list;
+          },
+          "notif: " + item.title
+        );
+        if (isTargetedToMe(item, session)) {
+          mergeInbox(item);
+          addToPanel(item.body || item.title, item.id, {
+            title: item.title,
+            type: item.type,
+            created_at: item.created_at,
+            link: item.link
+          });
+          updateBadge(countUnread() + countLocalNear());
+        }
         setTimeout(pollServerNotifications, 800);
         return item;
       } catch (e) {
