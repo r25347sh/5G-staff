@@ -1,36 +1,43 @@
-# メール通知（Google Apps Script / 学校 Workspace）
+# メール通知（麗澤 Google Workspace）
 
-麗澤の Google Workspace 向け。差出人はデプロイした学校アカウント（例: r25347sh@hs.reitaku.jp）。
+## なぜウェブアプリ「全員」が要らないか
 
-## 手順
+学校契約では「アクセスできるユーザー」が **麗澤大学内の全員** などに固定され、  
+外部サイトからの匿名 POST ができません。
 
-1. [Google Apps Script](https://script.google.com) を **学校アカウント** で開く
-2. 新しいプロジェクト → `gas/Code.gs` の内容を貼る
-3. `SEND_TOKEN` を長いランダム文字列に変更（例: 32文字以上）
-4. 上部「デプロイ」→「新しいデプロイ」
-   - 種類: **ウェブアプリ**
-   - 実行ユーザー: **自分**
-   - アクセスできるユーザー: **全員**
-5. 承認（学校の権限ダイアログ）を許可
-6. 表示された URL をコピー
-7. サイトの `js/email.js` を編集:
-   ```js
-   var GAS_URL = "https://script.google.com/macros/s/XXXX/exec";
-   var GAS_TOKEN = "（Code.gs と同じトークン）";
-   ```
-8. コミット / デプロイ後、管理画面から通知を送り、登録メールに届くか確認
+そのため **メールキュー方式** を使います。
 
-## 受信者
+```
+通知送信 → Supabase mail_queue に pending 追加
+         → GAS が1分おきにキューを読む
+         → GmailApp で学校メアドから送信
+```
 
-右上アカウントメニュー → **メールアドレス登録** をしたユーザーのみ。
+## あなたがやること
 
-## 制限（目安）
+### A. Supabase
+SQL Editor で `supabase-schema.sql` の **mail_queue** 部分を実行（まだならファイル全体でOK）。
 
-- Workspace の Gmail 送信上限（通常は個人より緩い）
-- 1通知あたり BCC 分割で送信
+### B. GAS
+1. **学校アカウント** で https://script.google.com
+2. 新規プロジェクト → リポジトリ `gas/Code.gs` を貼る
+3. エディタで `testSendSelf` を実行 → 権限承認 → 自分にテストメール
+4. `processMailQueue` を1回実行（空でも可・権限のため）
+5. **トリガー** を追加:
+   - 関数: `processMailQueue`
+   - イベント: 時間主導型
+   - 1分おき（または5分おき）
 
-## セキュリティ
+ウェブアプリのデプロイは **不要** です。
 
-- URL はリポジトリに入るが、**トークン無しでは送れない**
-- トークンは coee と email.js で一致させる
-- 漏洩したら SEND_TOKEN を変えて再デプロイ
+### C. 受信者
+ポータル右上 → メールアドレス登録。
+
+### D. 動作確認
+1. 誰かの user_profiles に email を入れる
+2. 管理画面から通知送信
+3. Supabase Table Editor で `mail_queue` に pending が付く
+4. 最大1〜5分で GAS が sent にし、メールが届く
+
+## 差出人
+GAS を作ったアカウント（`r25347sh@hs.reitaku.jp` 推奨）
