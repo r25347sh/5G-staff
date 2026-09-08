@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  var LIFF_ID = ""; // LIFF アプリ ID を設定してください（LINE Developers）
+  var LIFF_ID = "2011469610-d3tvoLDD"; // LIFF アプリ ID を設定してください（LINE Developers）
   var STYLE_ID = "g5-auth-ui-style";
 
   function injectStyles() {
