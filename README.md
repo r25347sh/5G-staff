@@ -1,46 +1,60 @@
-# G⁵ Portal (5G-staff)
+# G⁵ Portal（5G-staff）
 
-麗澤高等学校 5年G組 スタッフポータル。
+麗澤高校 5年G組スタッフポータル。
 
-## 機能
+## 主な機能
 
-- **シフト確認** … **9/12 固定**（時間のみ設定）。ステータス（外 / 間近10分前 / 中 / 終了）
-- **一括登録** … 同じ時間帯に複数人を一括追加
-- **役割** … 受付 / 総務 / ブラックジャック / ポーカー / チンチロ / 大富豪
-- **急募** … 全員 / 特定複数人向け。人数指定。定員到達で急募終了通知。**急募投稿時は対象者へ通知**
-- **通知** … サイト内ベル + ブラウザ／PWA プッシュ。admin/teacher から一対一・一対多送信可
-- **スレッド** … 掲示板（投稿・返信）
-- **チャット** … 全体 + 生徒同士DM。ログイン全ロール送信可
-- **通知レベル** … 緊急 / 重要 / 通常 / 低
-- **ログイン** … 独立 `login.html`（ID/PASS・QR・前回ID記憶）
-- **CSV / PDF エクスポート** / **バナー / PWA / MENU**
+- **ログイン**: ID/パスワード + QRコード（カメラ前面/背面切替対応）
+- **シフト**: Supabase 優先（フォールバック: `src/data/shift.json` + GitHub Contents API）
+- **通知**: admin / teacher からの一方通知 + 生徒の返信（生徒同士チャットは廃止）
+- **アカウントメニュー**: メール登録（通知用）・LINE連携（LIFF）・ログアウト
+- **UI**: 未ログイン時は右上ログイン、ログイン後は右上アカウントメニュー
 
-## ページ
+## QRコード形式
 
-| ファイル | 内容 |
-|----------|------|
-| `index.html` | トップ |
-| `login.html` | ログイン（専用） |
-| `shift.html` | シフト一覧・急募応募 |
-| `chat.html` | クラスチャット |
-| `threads.html` | スレッド |
-| `manual.html` | マニュアル |
-| `admin.html` | 管理（シフト / 急募 / 通知送信 / バナー 等） |
+```json
+{"id":"ユーザーID","pass":"パスワード"}
+```
 
-## データ
+または `id:pass` 形式も可。
 
-- `src/data/shift.json` / `users.json` / `banner.json`
-- `src/data/notifications.json` … 通知キュー
-- `src/data/threads.json` … スレッド
-- `src/data/chat.json` … チャットメッセージ
-- `src/data/manual/` … `.gitkeep`（md 追加でマニュアル復活）
+## Supabase セットアップ（必須推奨）
 
-## ユーザー（初期）
+1. [Supabase Dashboard](https://supabase.com/dashboard) → プロジェクト `ngjculhtbbxazgkkelvi`
+2. SQL Editor で `supabase-schema.sql` の内容を実行
+3. （任意）既存 `src/data/shift.json` のデータを `shifts` テーブルへ import
 
-- `r25347sh` / `kes-2592` (admin)
+ anon key は `js/supabase.js` に埋め込み済み。
 
-## デプロイ
+## LINE LIFF
 
-GitHub Pages。
+`js/auth-ui.js` 先頭の `LIFF_ID` に、LINE Developers で作成した LIFF App ID を設定。
 
-© 2026 Reitaku H.S. 5G
+## ローカル確認
+
+静的ホスト（GitHub Pages 等）で配信。PAT は `js/common.js` のフォールバックに依存（GitHub 書き込み時）。
+
+## ファイル構成（主要）
+
+```
+index.html          … ポータルホーム（ログイン後の着地）
+login.html          … ログイン（QRカメラ切替）
+shift.html          … シフト
+notifications.html  … 通知＋返信
+admin.html          … 管理
+js/
+  common.js         … セッション・認証
+  qr-login.js       … QRスキャン＋カメラ切替
+  supabase.js       … Supabase クライアント
+  auth-ui.js        … 右上ログイン / アカウントメニュー
+  api.js            … GitHub Contents API（フォールバック）
+supabase-schema.sql … テーブル定義
+```
+
+## 変更履歴（2026-09-08）
+
+- QRログイン: 前面/背面カメラ切替
+- ログイン後は `index.html` へ統一遷移
+- シフト R/W を Supabase 優先に
+- 生徒間チャット廃止 → 通知＋返信のみ
+- 右上ログイン / アカウントメニュー（メール・LINE）
