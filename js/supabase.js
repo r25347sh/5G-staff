@@ -93,6 +93,19 @@
     return res.data;
   }
 
+  /** line_user_id から連携済みプロファイルを取得（自動ログイン用） */
+  async function getUserProfileByLineId(lineUserId) {
+    if (!lineUserId) return null;
+    var sb = await getClient();
+    var res = await sb
+      .from("user_profiles")
+      .select("*")
+      .eq("line_user_id", lineUserId)
+      .maybeSingle();
+    if (res.error) throw new Error(res.error.message);
+    return res.data;
+  }
+
   async function upsertUserProfile(profile) {
     var sb = await getClient();
     var res = await sb
@@ -208,6 +221,7 @@
     upsertShift: upsertShift,
     replaceAllShifts: replaceAllShifts,
     getUserProfile: getUserProfile,
+    getUserProfileByLineId: getUserProfileByLineId,
     upsertUserProfile: upsertUserProfile,
     fetchNotifications: fetchNotifications,
     createNotification: createNotification,

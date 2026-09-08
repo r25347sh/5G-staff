@@ -43,6 +43,7 @@
       <div class="login-divider"><span>または</span></div>
       <div class="qr-login-actions">
         <button type="button" class="btn btn-ghost btn-block" id="btn-qr-start" aria-label="QRコードでログイン">📷 QRコードでログイン</button>
+        <button type="button" class="btn btn-ghost btn-block" id="btn-line-login" aria-label="LINEでログイン" style="margin-top:.5rem;border-color:rgba(6,199,85,.45);color:#06c755;">💬 LINEでログイン</button>
       </div>
       <div id="qr-scan-box" class="qr-scan-box" hidden>
         <video id="qr-video" playsinline muted aria-label="QRスキャン用カメラ"></video>
@@ -54,6 +55,7 @@
         </div>
         <p class="hint-text">QR形式: {id,pass}　例: {r25347sh,password}</p>
       </div>
+      <p class="hint-text" style="margin-top:.5rem;opacity:.75;">LINE連携済みアカウントは「LINEでログイン」で自動サインインできます</p>
 
       <p id="login-msg" class="msg" role="status" aria-live="polite"></p>
       <p class="hint-text login-foot">
@@ -64,6 +66,7 @@
   </main>
   <script src="js/common.js"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/auth-ui.js"></script>
   <script src="js/qr-login.js"></script>
   <script>
   (function () {
@@ -126,10 +129,57 @@
       setTimeout(function () { redirectAfterLogin(u); }, 400);
     };
 
-    document.addEventListener("DOMContentLoaded", function () {
+    async function doLineLogin() {
+      var msg = document.getElementById("login-msg");
+      try {
+        if (!window.G5AuthUI || !G5AuthUI.tryAutoLoginWithLine) {
+          msg.textContent = "LINEログイン機能の読み込みに失敗しました";
+          msg.classList.add("error");
+          return;
+        }
+        msg.textContent = "LINE を確認しています…";
+        msg.classList.remove("error");
+        var ok = await G5AuthUI.tryAutoLoginWithLine();
+        if (ok) {
+          msg.textContent = "LINE連携アカウントでログインしました。移動します…";
+          setTimeout(function () { redirectAfterLogin(G5.getSession()); }, 400);
+          return;
+        }
+        /* 未連携 or 未ログイン → LIFF ログインへ誘導 */
+        await G5AuthUI.ensureLiff();
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: location.href.split("#")[0] });
+          return;
+        }
+        msg.textContent = "このLINEアカウントはまだポータルに連携されていません。先にID/パスワードでログインし、アカウントメニューから「LINEアカウント連携」を行ってください。";
+        msg.classList.add("error");
+      } catch (e) {
+        msg.textContent = "LINEログイン失敗: " + (e.message || e);
+        msg.classList.add("error");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
       showAlready();
       if (window.G5 && G5.enhanceLoginForm) {
         G5.enhanceLoginForm({ idInput: "login-id", passInput: "login-pass", msgId: "login-msg" });
+      }
+      var lineBtn = document.getElementById("btn-line-login");
+      if (lineBtn) lineBtn.addEventListener("click", doLineLogin);
+
+      /* 既にセッションがあれば already 表示。なければ LINE 自動ログインを静かに試す */
+      if (!G5.getSession() && window.G5AuthUI && G5AuthUI.tryAutoLoginWithLine) {
+        try {
+          var auto = await G5AuthUI.tryAutoLoginWithLine();
+          if (auto) {
+            showAlready();
+            var msg = document.getElementById("login-msg");
+            if (msg) {
+              msg.textContent = "LINE連携アカウントで自動ログインしました";
+              msg.classList.remove("error");
+            }
+          }
+        } catch (e) {}
       }
     });
   })();

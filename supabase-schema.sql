@@ -28,10 +28,14 @@ create table if not exists public.user_profiles (
   email text,
   line_user_id text,
   line_display_name text,
+  line_picture_url text,
   notify_email boolean default true,
   notify_line boolean default true,
   updated_at timestamptz default now()
 );
+
+-- 既存テーブルへの追加カラム（既に作成済みの場合）
+alter table public.user_profiles add column if not exists line_picture_url text;
 
 -- 3. notifications（admin/teacher → 一方通知）
 create table if not exists public.notifications (

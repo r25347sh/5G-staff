@@ -50,13 +50,46 @@
       slot.hidden = false;
     } catch (e) {}
   }
+  /* セッションは localStorage で永続化（タブ閉じても継続）。旧 sessionStorage からも移行 */
   G5.getSession = function () {
-    try { return JSON.parse(sessionStorage.getItem("g5_session") || "null"); } catch (e) { return null; }
+    try {
+      var raw = localStorage.getItem("g5_session") || sessionStorage.getItem("g5_session");
+      if (!raw) return null;
+      var s = JSON.parse(raw);
+      /* 旧 sessionStorage にだけあった場合は local へ移行 */
+      if (!localStorage.getItem("g5_session") && sessionStorage.getItem("g5_session")) {
+        localStorage.setItem("g5_session", raw);
+        sessionStorage.removeItem("g5_session");
+      }
+      return s;
+    } catch (e) {
+      return null;
+    }
   };
   G5.setSession = function (user) {
-    sessionStorage.setItem("g5_session", JSON.stringify({ id: user.id, name: user.name || user.id, role: user.role }));
+    var payload = {
+      id: user.id,
+      name: user.name || user.id,
+      role: user.role,
+      line_picture_url: user.line_picture_url || null,
+      line_display_name: user.line_display_name || null,
+      line_user_id: user.line_user_id || null
+    };
+    try {
+      localStorage.setItem("g5_session", JSON.stringify(payload));
+      sessionStorage.removeItem("g5_session"); /* 旧を掃除 */
+    } catch (e) {
+      sessionStorage.setItem("g5_session", JSON.stringify(payload));
+    }
   };
-  G5.clearSession = function () { sessionStorage.removeItem("g5_session"); };
+  G5.clearSession = function () {
+    try {
+      localStorage.removeItem("g5_session");
+    } catch (e) {}
+    try {
+      sessionStorage.removeItem("g5_session");
+    } catch (e) {}
+  };
 
   /* 前回ログインIDを記憶（localStorage） */
   G5.getLastLoginId = function () {

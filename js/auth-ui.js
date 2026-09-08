@@ -23,7 +23,9 @@
       ".g5-account-btn{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .75rem .4rem .4rem;border-radius:999px;",
       "background:rgba(20,14,32,.88);border:1px solid rgba(255,255,255,.14);color:#f5f0ff;cursor:pointer;font:inherit;font-size:.85rem}",
       ".g5-account-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#ff2d95,#00f5ff);",
-      "display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#0a0714}",
+      "display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#0a0714;overflow:hidden;flex-shrink:0}",
+      ".g5-account-avatar img{width:100%;height:100%;object-fit:cover;display:block}",
+      ".g5-account-meta .line-badge{font-size:.7rem;color:#06c755;margin-top:.2rem}",
       ".g5-account-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:260px;background:rgba(14,10,24,.96);",
       "border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);padding:.5rem;display:none}",
       ".g5-account-wrap{position:relative}",
@@ -78,11 +80,24 @@
     }
 
     var initial = (sess.name || sess.id || "?").charAt(0);
+    var avatarHtml =
+      sess.line_picture_url
+        ? '<img src="' +
+          String(sess.line_picture_url).replace(/"/g, "&quot;") +
+          '" alt="" referrerpolicy="no-referrer">'
+        : initial;
+    var lineBadge =
+      sess.line_user_id
+        ? '<div class="line-badge">LINE連携済み' +
+          (sess.line_display_name ? " · " + sess.line_display_name : "") +
+          "</div>"
+        : "";
+    var lineBtnLabel = sess.line_user_id ? "💬 LINE連携を更新" : "💬 LINEアカウント連携";
     bar.innerHTML =
       '<div class="g5-account-wrap" id="g5-account-wrap">' +
       '<button type="button" class="g5-account-btn" id="g5-account-btn" aria-haspopup="true" aria-expanded="false">' +
       '<span class="g5-account-avatar">' +
-      initial +
+      avatarHtml +
       "</span>" +
       "<span>" +
       (sess.name || sess.id) +
@@ -93,9 +108,13 @@
       (sess.name || sess.id) +
       '</div><div class="role">' +
       sess.role +
-      "</div></div>" +
+      "</div>" +
+      lineBadge +
+      "</div>" +
       '<button type="button" id="g5-btn-email" role="menuitem">✉️ メールアドレス登録</button>' +
-      '<button type="button" id="g5-btn-line" role="menuitem">💬 LINEアカウント連携</button>' +
+      '<button type="button" id="g5-btn-line" role="menuitem">' +
+      lineBtnLabel +
+      "</button>" +
       '<a href="index.html" role="menuitem">🏠 ポータルホーム</a>' +
       '<button type="button" id="g5-btn-logout" role="menuitem">🚪 ログアウト</button>' +
       "</div></div>";
@@ -182,55 +201,166 @@
     };
   }
 
-  async function linkLine() {
+  async function ensureLiff() {
     if (!LIFF_ID) {
-      alert(
-        "LINE連携（LIFF）を有効にするには、js/auth-ui.js の LIFF_ID に LINE Developers で発行した LIFF App ID を設定してください。"
+      throw new Error(
+        "LIFF_ID 未設定です。js/auth-ui.js の LIFF_ID に LINE Developers の LIFF App ID を入れてください。"
       );
-      return;
     }
+    if (!window.liff) {
+      await new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+        s.onload = resolve;
+        s.onerror = function () {
+          reject(new Error("LIFF SDK の読み込みに失敗しました"));
+        };
+        document.head.appendChild(s);
+      });
+    }
+    await liff.init({ liffId: LIFF_ID });
+  }
+
+  async function linkLine() {
     try {
-      if (!window.liff) {
-        await new Promise(function (resolve, reject) {
-          var s = document.createElement("script");
-          s.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      }
-      await liff.init({ liffId: LIFF_ID });
+      await ensureLiff();
       if (!liff.isLoggedIn()) {
-        liff.login();
+        liff.login({ redirectUri: location.href.split("#")[0] });
         return;
       }
       var profile = await liff.getProfile();
       var sess = G5.getSession();
-      if (!sess) return;
+      if (!sess) {
+        alert("先にポータルにログインしてから LINE 連携を行ってください。");
+        return;
+      }
+      if (!window.G5Supabase) throw new Error("Supabase 未初期化");
       await G5Supabase.upsertUserProfile({
         user_id: sess.id,
         line_user_id: profile.userId,
         line_display_name: profile.displayName,
+        line_picture_url: profile.pictureUrl || null,
         updated_at: new Date().toISOString()
       });
-      alert("LINEアカウントを連携しました（" + profile.displayName + "）");
+      /* セッションにも反映してアイコン即時更新 */
+      G5.setSession({
+        id: sess.id,
+        name: sess.name,
+        role: sess.role,
+        line_user_id: profile.userId,
+        line_display_name: profile.displayName,
+        line_picture_url: profile.pictureUrl || null
+      });
+      alert(
+        "LINEアカウントを連携しました（" +
+          profile.displayName +
+          "）\n\n【LINE連携の恩恵】\n・プロフィール画像がアイコンに表示\n・次回から LINE ログインで自動サインイン可能\n・連携状態がメニューに表示"
+      );
+      render();
     } catch (e) {
       alert("LINE連携に失敗: " + (e.message || e));
     }
   }
 
-  function boot() {
-    // login ページでは出さない
+  /**
+   * LINE がログイン済み & ポータルに紐づいている場合に自動ログイン
+   * （未ログイン時に呼ばれる）
+   */
+  async function tryAutoLoginWithLine() {
+    if (G5.getSession()) return false;
+    try {
+      await ensureLiff();
+      if (!liff.isLoggedIn()) return false;
+      var profile = await liff.getProfile();
+      if (!window.G5Supabase) return false;
+      var linked = await G5Supabase.getUserProfileByLineId(profile.userId);
+      if (!linked || !linked.user_id) return false;
+
+      /* users.json から名前・ロールを取得 */
+      var usersRes = await fetch(
+        (window.G5 && G5.BASE ? G5.BASE : ".") + "/src/data/users.json?t=" + Date.now()
+      );
+      var users = await usersRes.json();
+      var u = users.find(function (x) {
+        return x.id === linked.user_id;
+      });
+      if (!u) return false;
+
+      G5.setSession({
+        id: u.id,
+        name: u.name,
+        role: u.role,
+        line_user_id: profile.userId,
+        line_display_name: profile.displayName || linked.line_display_name,
+        line_picture_url: profile.pictureUrl || linked.line_picture_url || null
+      });
+      G5.setLastLoginId(u.id);
+
+      /* プロフィール画像が変わっていたら更新 */
+      if (profile.pictureUrl && profile.pictureUrl !== linked.line_picture_url) {
+        G5Supabase.upsertUserProfile({
+          user_id: u.id,
+          line_user_id: profile.userId,
+          line_display_name: profile.displayName,
+          line_picture_url: profile.pictureUrl,
+          updated_at: new Date().toISOString()
+        }).catch(function () {});
+      }
+      return true;
+    } catch (e) {
+      console.warn("LINE auto-login skipped:", e);
+      return false;
+    }
+  }
+
+  async function boot() {
+    // login ページではヘッダーUIは出さない（ログインページ側で LINE ログインボタンを扱う）
     var path = (location.pathname || "").toLowerCase();
     if (path.indexOf("login.html") !== -1) return;
+
+    /* 未ログイン時、LINE 連携済みなら自動ログインを試行 */
+    if (!G5.getSession()) {
+      try {
+        var ok = await tryAutoLoginWithLine();
+        if (ok) {
+          /* 自動ログイン成功したら表示更新 */
+        }
+      } catch (e) {}
+    } else {
+      /* 既にセッションがある場合、LINE 画像が無ければプロファイルから補完 */
+      try {
+        var sess = G5.getSession();
+        if (sess && !sess.line_picture_url && window.G5Supabase) {
+          var p = await G5Supabase.getUserProfile(sess.id);
+          if (p && (p.line_picture_url || p.line_user_id)) {
+            G5.setSession({
+              id: sess.id,
+              name: sess.name,
+              role: sess.role,
+              line_user_id: p.line_user_id || sess.line_user_id,
+              line_display_name: p.line_display_name || sess.line_display_name,
+              line_picture_url: p.line_picture_url || null
+            });
+          }
+        }
+      } catch (e) {}
+    }
     render();
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+    document.addEventListener("DOMContentLoaded", function () {
+      boot();
+    });
   } else {
     boot();
   }
 
-  window.G5AuthUI = { refresh: render, openEmailModal: openEmailModal, linkLine: linkLine };
+  window.G5AuthUI = {
+    refresh: render,
+    openEmailModal: openEmailModal,
+    linkLine: linkLine,
+    tryAutoLoginWithLine: tryAutoLoginWithLine,
+    ensureLiff: ensureLiff
+  };
 })();
