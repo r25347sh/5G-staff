@@ -94,3 +94,22 @@ alter publication supabase_realtime add table public.notification_replies;
 create index if not exists idx_shifts_time on public.shifts (time_start);
 create index if not exists idx_notif_created on public.notifications (created_at desc);
 create index if not exists idx_replies_nid on public.notification_replies (notification_id);
+
+
+-- 5. mail_queue（GAS 定期実行で送信。Workspace が「全員」不可のときの本線）
+create table if not exists public.mail_queue (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null,
+  from_name text,
+  link text,
+  emails jsonb not null default '[]',
+  status text not null default 'pending', -- pending | sent | error
+  error text,
+  created_at timestamptz default now(),
+  sent_at timestamptz
+);
+
+alter table public.mail_queue enable row level security;
+create policy "mail_queue_all" on public.mail_queue for all using (true) with check (true);
+create index if not exists idx_mail_queue_status on public.mail_queue (status, created_at);
