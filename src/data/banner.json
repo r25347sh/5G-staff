@@ -3,6 +3,11 @@
     "enabled": true,
     "text": "G⁵ Portalへようこそ。シフト確認はこちら。",
     "link": "shift.html",
-    "pages": ["index", "shift", "manual", "admin"]
+    "pages": [
+      "index",
+      "shift",
+      "manual",
+      "admin"
+    ]
   }
 ]
