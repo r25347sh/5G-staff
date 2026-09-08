@@ -48,18 +48,22 @@
         <video id="qr-video" playsinline muted aria-label="QRスキャン用カメラ"></video>
         <canvas id="qr-canvas" hidden></canvas>
         <p id="qr-scan-msg" class="msg" role="status" aria-live="polite"></p>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-stop">カメラ停止</button>
-        <p class="hint-text">QR例: {"id":"...","pass":"..."} または id:pass</p>
+        <div class="qr-scan-controls">
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-switch">🔄 カメラ切替</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-qr-stop">カメラ停止</button>
+        </div>
+        <p class="hint-text">QR形式: {"id":"...","pass":"..."} または id:pass</p>
       </div>
 
       <p id="login-msg" class="msg" role="status" aria-live="polite"></p>
       <p class="hint-text login-foot">
         <a href="index.html">ホームに戻る</a>
-        · ログイン後にシフト・チャット・スレッドが使えます
+        · ログイン後にシフト・通知が使えます
       </p>
     </div>
   </main>
   <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/qr-login.js"></script>
   <script>
   (function () {
@@ -70,17 +74,13 @@
         location.href = next;
         return;
       }
-      if (u && ["admin", "teacher", "temporary"].indexOf(u.role) !== -1) {
-        location.href = "admin.html";
-        return;
-      }
-      location.href = "shift.html";
+      // ログイン後は新 index.html へ統一
+      location.href = "index.html";
     }
 
     function showAlready() {
       var s = G5.getSession && G5.getSession();
       var box = document.getElementById("already-box");
-      var form = document.getElementById("login-form");
       if (!s) {
         if (box) box.hidden = true;
         return;
@@ -90,8 +90,7 @@
         document.getElementById("already-label").textContent =
           (s.name || s.id) + "（" + s.role + "）でログイン中";
         var go = document.getElementById("already-go");
-        if (["admin", "teacher", "temporary"].indexOf(s.role) !== -1) go.href = "admin.html";
-        else go.href = "shift.html";
+        go.href = "index.html";
       }
     }
 
