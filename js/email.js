@@ -7,8 +7,8 @@
   "use strict";
 
   /** 方式B用（通常は空でOK） */
-  var GAS_URL = "";
-  var GAS_TOKEN = "";
+  var GAS_URL = "https://script.google.com/a/macros/hs.reitaku.jp/s/AKfycbyYoPbxIyuBBkMT9AIeaKb8KpN2RXw_0eu0nict5tdhBzX11LvfEr4NDTpIcbewsa5a/exec";
+  var GAS_TOKEN = "hedhnwedehfeufehdewuihfd0ewjfdhewifefdewlbddwbdcbwfewbcdwugcodwnferwjbfuowdicndwkoednwdnxcwidcoewdmmfewofnewbvdcyuevasjdhwepfrhfuewbwwkcwbcwedkewbdewfdwbferugfihrgbvayhxvswhdcfwdgfiewhf";
 
   function absoluteLink(link) {
     if (!link) {
