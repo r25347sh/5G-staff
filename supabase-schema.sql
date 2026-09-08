@@ -42,8 +42,27 @@ create table if not exists public.notifications (
   author_name text,
   author_role text,
   target jsonb default '"all"',  -- "all" | ["userId", ...]
+  type text default 'broadcast',
+  level text default 'normal',
+  link text,
   created_at timestamptz default now()
 );
+
+-- 既存 JSON からのシード例（1件）
+-- insert into public.notifications (id, title, body, author_id, author_name, target, type, level, link, created_at)
+-- values (
+--   'n_mtruyj5l00nfz',
+--   '急募のお知らせ',
+--   '13:00–15:00（大富豪）募集中 — みんなおうぼしてー！',
+--   'r25347sh',
+--   '管理者',
+--   '"all"',
+--   'urgent',
+--   'urgent',
+--   'shift.html',
+--   '2026-09-07T23:14:44.217Z'
+-- );
+
 
 -- 4. notification_replies（生徒からの返信）
 create table if not exists public.notification_replies (
