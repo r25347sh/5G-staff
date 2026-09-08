@@ -48,10 +48,11 @@
   }
 
   async function loadShifts() {
+    /* 完全移行モード: Supabase 成功時は空配列でも JSON に戻らない */
     if (window.G5Supabase && G5Supabase.fetchShifts) {
       try {
         var rows = await G5Supabase.fetchShifts();
-        if (rows && rows.length) return rows;
+        return rows || [];
       } catch (e) {
         console.warn("Supabase shifts fallback to JSON", e);
       }
