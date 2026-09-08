@@ -630,9 +630,13 @@
           updateBadge(countUnread() + countLocalNear());
         }
         setTimeout(pollServerNotifications, 500);
-        /* メール通知（Edge Function 経由・設定済みなら） */
+        /* メール通知: GAS(Workspace) 優先 → Resend Edge Function */
         try {
-          if (G5Supabase.notifyEmail) G5Supabase.notifyEmail(item);
+          if (window.G5Email && G5Email.sendNotificationEmail) {
+            G5Email.sendNotificationEmail(item);
+          } else if (window.G5Supabase && G5Supabase.notifyEmail) {
+            G5Supabase.notifyEmail(item);
+          }
         } catch (ee) {}
         return item;
       } catch (e) {
