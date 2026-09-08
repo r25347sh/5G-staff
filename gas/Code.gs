@@ -1,118 +1,147 @@
 /**
- * G⁵ Portal - 通知メール送信（Google Apps Script / Workspace）
+ * G⁵ Portal - メール送信（学校 Workspace 向け）
  *
- * セットアップ:
- * 1. https://script.google.com で新規プロジェクト
- * 2. このファイルの内容を Code.gs に貼り付け
- * 3. SEND_TOKEN を自分だけ知っている長い文字列に変更
- * 4. 「デプロイ」→「新しいデプロイ」→ 種類: ウェブアプリ
- *    - 実行ユーザー: 自分
- *    - アクセスできるユーザー: 全員（匿名含む）
- *      ※ トークンで守る。トークン無しでは送れない
- * 5. 発行された URL をサイトの js/email.js の GAS_URL に設定
- * 6. 同じトークンを GAS_TOKEN に設定
+ * 【重要】アクセスを「大学内の全員」しか選べない場合:
+ *   ウェブアプリの匿名POSTは使えません。
+ *   代わりに「メールキュー方式」を使います。
  *
- * 差出人: このスクリプトをデプロイした Google アカウント
- * （r25347sh@hs.reitaku.jp でログインして作ること）
+ * 方式A（推奨・ドメイン制限OK）:
+ *   1. サイトが Supabase mail_queue に行を追加
+ *   2. この GAS を 1分おきの時間主導型トリガーで実行
+ *   3. GAS がキューを読んで GmailApp で送信
+ *   → 「ウェブアプリ公開」不要。差出人は学校アカウント
+ *
+ * 方式B（アクセスを「全員」にできる場合のみ）:
+ *   doPost ウェブアプリ + トークン
+ *
+ * セットアップ（方式A）:
+ * 1. script.google.com で新規（学校アカウント r25347sh@hs.reitaku.jp）
+ * 2. このコードを貼る
+ * 3. SUPABASE_URL / SUPABASE_ANON_KEY を確認（下記は公開 anon）
+ * 4. エディタで processMailQueue を1回実行して権限承認
+ * 5. トリガー: processMailQueue / 時間主導型 / 1分おき
  */
 
-var SEND_TOKEN = "CHANGE_ME_TO_A_LONG_SECRET_TOKEN";
+var SUPABASE_URL = "https://ngjculhtbbxazgkkelvi.supabase.co";
+var SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5namN1bGh0YmJ4YXpna2tlbHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NjYyMzEsImV4cCI6MjEwNDE0MjIzMX0.2AF7s7-cwgTMGuBl5TN1INhhkTaFJ2z-7Oj8t26iu2k";
 
-function doPost(e) {
-  try {
-    var body = {};
-    if (e && e.postData && e.postData.contents) {
-      body = JSON.parse(e.postData.contents);
-    }
+var SEND_TOKEN = "CHANGE_ME_TO_A_LONG_SECRET_TOKEN"; // 方式B用
 
-    if (!body.token || body.token !== SEND_TOKEN) {
-      return jsonOut({ ok: false, error: "unauthorized" }, 401);
-    }
+/** トリガーから呼ぶ本体 */
+function processMailQueue() {
+  var pending = sbRequest("GET", "/rest/v1/mail_queue?status=eq.pending&order=created_at.asc&limit=20");
+  if (!pending || !pending.length) {
+    Logger.log("no pending mail");
+    return;
+  }
 
-    var title = String(body.title || "お知らせ");
-    var text = String(body.body || "");
-    var fromName = String(body.from_name || "G⁵ Portal");
-    var link = String(body.link || "");
-    var emails = body.emails;
-
-    if (!emails || !emails.length) {
-      return jsonOut({ ok: true, sent: 0, reason: "no recipients" });
-    }
-
-    // 念のため配列化・重複排除・簡易バリデーション
-    var seen = {};
-    var list = [];
-    for (var i = 0; i < emails.length; i++) {
-      var em = String(emails[i] || "").trim().toLowerCase();
-      if (!em || seen[em]) continue;
-      if (em.indexOf("@") === -1) continue;
-      seen[em] = true;
-      list.push(em);
-    }
-    if (!list.length) {
-      return jsonOut({ ok: true, sent: 0, reason: "no valid emails" });
-    }
-
-    var subject = "[G⁵] " + title;
-    var html =
-      '<div style="font-family:sans-serif;line-height:1.6;color:#222">' +
-      "<h2 style='margin:0 0 12px'>" +
-      escapeHtml(title) +
-      "</h2>" +
-      "<p style='white-space:pre-wrap;margin:0 0 16px'>" +
-      escapeHtml(text) +
-      "</p>" +
-      "<p style='font-size:13px;color:#666'>送信: " +
-      escapeHtml(fromName) +
-      "</p>" +
-      (link
-        ? "<p><a href='" + escapeHtml(link) + "'>ポータルで開く</a></p>"
-        : "") +
-      "<hr style='border:none;border-top:1px solid #eee;margin:20px 0'/>" +
-      "<p style='font-size:12px;color:#999'>G⁵ Portal · 麗澤高校 5年G組スタッフ</p>" +
-      "</div>";
-
-    // Workspace の Gmail で送信（デプロイアカウントが差出人）
-    // 一度に多すぎると制限に当たるので分割
-    var chunk = 40;
-    var sent = 0;
-    for (var s = 0; s < list.length; s += chunk) {
-      var part = list.slice(s, s + chunk);
-      GmailApp.sendEmail(
-        part[0],
-        subject,
-        text,
-        {
-          htmlBody: html,
-          name: fromName,
-          bcc: part.length > 1 ? part.slice(1).join(",") : undefined,
-          noReply: false
+  for (var i = 0; i < pending.length; i++) {
+    var row = pending[i];
+    try {
+      var emails = row.emails;
+      if (typeof emails === "string") {
+        try {
+          emails = JSON.parse(emails);
+        } catch (e) {
+          emails = [];
         }
-      );
-      sent += part.length;
-    }
+      }
+      if (!emails || !emails.length) {
+        sbRequest(
+          "PATCH",
+          "/rest/v1/mail_queue?id=eq." + encodeURIComponent(row.id),
+          { status: "sent", sent_at: new Date().toISOString(), error: "no recipients" }
+        );
+        continue;
+      }
 
-    return jsonOut({ ok: true, sent: sent });
-  } catch (err) {
-    return jsonOut({ ok: false, error: String(err) }, 500);
+      sendMail_(row.title, row.body, row.from_name, row.link, emails);
+
+      sbRequest(
+        "PATCH",
+        "/rest/v1/mail_queue?id=eq." + encodeURIComponent(row.id),
+        { status: "sent", sent_at: new Date().toISOString(), error: null }
+      );
+      Logger.log("sent " + row.id + " to " + emails.length);
+    } catch (err) {
+      sbRequest(
+        "PATCH",
+        "/rest/v1/mail_queue?id=eq." + encodeURIComponent(row.id),
+        { status: "error", error: String(err).slice(0, 500) }
+      );
+      Logger.log("error " + row.id + " " + err);
+    }
   }
 }
 
-function doGet() {
-  return jsonOut({
-    ok: true,
-    service: "G5 notification mail",
-    hint: "POST JSON { token, title, body, emails[], from_name, link }"
-  });
+function sendMail_(title, body, fromName, link, emails) {
+  var subject = "[G⁵] " + (title || "お知らせ");
+  var text = body || "";
+  fromName = fromName || "G⁵ Portal";
+  var html =
+    '<div style="font-family:sans-serif;line-height:1.6;color:#222">' +
+    "<h2 style='margin:0 0 12px'>" +
+    escapeHtml_(title || "お知らせ") +
+    "</h2>" +
+    "<p style='white-space:pre-wrap;margin:0 0 16px'>" +
+    escapeHtml_(text) +
+    "</p>" +
+    "<p style='font-size:13px;color:#666'>送信: " +
+    escapeHtml_(fromName) +
+    "</p>" +
+    (link ? "<p><a href='" + escapeHtml_(link) + "'>ポータルで開く</a></p>" : "") +
+    "<hr style='border:none;border-top:1px solid #eee;margin:20px 0'/>" +
+    "<p style='font-size:12px;color:#999'>G⁵ Portal · 麗澤 5年G組スタッフ</p></div>";
+
+  var list = [];
+  var seen = {};
+  for (var i = 0; i < emails.length; i++) {
+    var em = String(emails[i] || "")
+      .trim()
+      .toLowerCase();
+    if (!em || seen[em] || em.indexOf("@") === -1) continue;
+    seen[em] = true;
+    list.push(em);
+  }
+  if (!list.length) return;
+
+  var chunk = 40;
+  for (var s = 0; s < list.length; s += chunk) {
+    var part = list.slice(s, s + chunk);
+    GmailApp.sendEmail(part[0], subject, text, {
+      htmlBody: html,
+      name: fromName,
+      bcc: part.length > 1 ? part.slice(1).join(",") : undefined
+    });
+  }
 }
 
-function jsonOut(obj, code) {
-  var out = ContentService.createTextOutput(JSON.stringify(obj));
-  out.setMimeType(ContentService.MimeType.JSON);
-  return out;
+function sbRequest(method, path, body) {
+  var url = SUPABASE_URL + path;
+  var headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: "Bearer " + SUPABASE_ANON_KEY,
+    "Content-Type": "application/json",
+    Prefer: method === "PATCH" ? "return=minimal" : "return=representation"
+  };
+  var options = {
+    method: method,
+    headers: headers,
+    muteHttpExceptions: true
+  };
+  if (body) options.payload = JSON.stringify(body);
+  var res = UrlFetchApp.fetch(url, options);
+  var code = res.getResponseCode();
+  var text = res.getContentText();
+  if (code >= 400) {
+    throw new Error("Supabase " + code + " " + text.slice(0, 200));
+  }
+  if (!text) return null;
+  return JSON.parse(text);
 }
 
-function escapeHtml(s) {
+function escapeHtml_(s) {
   return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -120,19 +149,33 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-/** エディタから直接実行して疎通確認 */
-function testSend() {
-  var result = doPost({
-    postData: {
-      contents: JSON.stringify({
-        token: SEND_TOKEN,
-        title: "GASテスト",
-        body: "G⁵ Portal メール送信テストです。",
-        from_name: "管理者",
-        emails: [Session.getActiveUser().getEmail()],
-        link: ""
-      })
+/** 手動テスト: キューに自分宛を1件入れてから実行してもよい */
+function testSendSelf() {
+  var me = Session.getActiveUser().getEmail();
+  sendMail_("GASテスト", "G⁵ メール送信テストです。", "管理者", "", [me]);
+  Logger.log("sent to " + me);
+}
+
+/* ===== 方式B: ウェブアプリ（「全員」が選べるときだけ） ===== */
+function doPost(e) {
+  try {
+    var body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    if (!body.token || body.token !== SEND_TOKEN) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: "unauthorized" })).setMimeType(
+        ContentService.MimeType.JSON
+      );
     }
-  });
-  Logger.log(result.getContent());
+    sendMail_(body.title, body.body, body.from_name, body.link, body.emails || []);
+    return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) })).setMimeType(
+      ContentService.MimeType.JSON
+    );
+  }
+}
+
+function doGet() {
+  return ContentService.createTextOutput(
+    JSON.stringify({ ok: true, mode: "queue-trigger preferred for Workspace domain lock" })
+  ).setMimeType(ContentService.MimeType.JSON);
 }
