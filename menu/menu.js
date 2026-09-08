@@ -27,8 +27,7 @@
     var items = [
       { label: 'ホーム', icon: '✦', url: href('/') },
       { label: 'シフト', icon: '◈', url: href('/shift.html') },
-      { label: 'チャット', icon: '💬', url: href('/chat.html') },
-      { label: 'スレッド', icon: '☰', url: href('/threads.html') },
+      { label: '通知', icon: '📢', url: href('/notifications.html') },
       { label: 'マニュアル', icon: '◇', url: href('/manual.html') }
     ];
     if (canSeeAdmin()) {
