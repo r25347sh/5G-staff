@@ -14,9 +14,9 @@
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;
 }
 .notif-bell {
-  position: fixed; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right));
-  z-index: 1000; width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border);
-  background: rgba(16, 11, 26, 0.92); color: #fff; font-size: 1.3rem; cursor: pointer;
+  position: fixed; top: max(0.75rem, env(safe-area-inset-top)); right: max(0.75rem, env(safe-area-inset-right));
+  z-index: 9100; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border);
+  background: rgba(16, 11, 26, 0.92); color: #fff; font-size: 1.2rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
 .notif-badge {
