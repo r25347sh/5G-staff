@@ -1,6 +1,6 @@
 /**
  * G⁵ Portal - QR ログイン
- * カメラ切替対応 / QR形式: {"id":"...","pass":"..."} または {id,pass} / id:pass
+ * カメラ切替対応 / QR形式: {id,pass}（1個目=ID, 2個目=パスワード）
  */
 (function () {
   "use strict";
