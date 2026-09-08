@@ -28,5 +28,35 @@
     "slots_needed": 1,
     "slots_filled": 0,
     "assignees": []
+  },
+  {
+    "shift_id": "s8bukky3t",
+    "user_id": "OhaShi",
+    "date": "2026-09-12",
+    "time_start": "09:00",
+    "time_end": "15:00",
+    "tanto": "受付",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "styffn3tg",
+    "user_id": "kX9_#",
+    "date": "2026-09-12",
+    "time_start": "09:00",
+    "time_end": "15:00",
+    "tanto": "受付",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "s55gl1c8v",
+    "user_id": "kX2=n",
+    "date": "2026-09-12",
+    "time_start": "09:00",
+    "time_end": "15:00",
+    "tanto": "受付",
+    "open": false,
+    "urgent": false
   }
 ]
