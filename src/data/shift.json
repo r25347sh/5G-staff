@@ -13,5 +13,20 @@
     "slots_needed": 1,
     "slots_filled": 0,
     "assignees": []
+  },
+  {
+    "shift_id": "uy4hii9iw",
+    "user_id": "open",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "17:00",
+    "tanto": "受付",
+    "open": true,
+    "urgent": true,
+    "note": "",
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": []
   }
 ]
