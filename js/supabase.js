@@ -177,6 +177,29 @@
       .subscribe();
   }
 
+
+  /**
+   * メール通知（Supabase Edge Function）
+   * 未デプロイ時は黙ってスキップ
+   */
+  async function notifyEmail(item) {
+    try {
+      var sb = await getClient();
+      var { error } = await sb.functions.invoke("send-notification-email", {
+        body: {
+          title: item.title,
+          body: item.body,
+          to: item.to,
+          from_name: item.from_name,
+          link: item.link || ""
+        }
+      });
+      if (error) console.warn("email fn", error);
+    } catch (e) {
+      /* Edge Function 未設定なら無視 */
+    }
+  }
+
   window.G5Supabase = {
     URL: SUPABASE_URL,
     getClient: getClient,
@@ -191,6 +214,7 @@
     fetchReplies: fetchReplies,
     postReply: postReply,
     subscribeShifts: subscribeShifts,
-    subscribeNotifications: subscribeNotifications
+    subscribeNotifications: subscribeNotifications,
+    notifyEmail: notifyEmail
   };
 })();
