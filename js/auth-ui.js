@@ -12,8 +12,10 @@
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
     var css = [
-      ".g5-auth-bar{position:fixed;top:0;right:0;z-index:9000;display:flex;align-items:center;gap:.5rem;padding:.65rem 1rem;pointer-events:none}",
+      ".g5-auth-bar{position:fixed;top:max(.75rem,env(safe-area-inset-top));right:max(3.6rem,calc(env(safe-area-inset-right) + 3.6rem));z-index:9200;display:flex;align-items:center;gap:.5rem;padding:0;pointer-events:none}",
       ".g5-auth-bar > *{pointer-events:auto}",
+      "body.has-auth-bar .notif-bell{right:max(.75rem,env(safe-area-inset-right))}",
+      "body.has-auth-bar .notif-panel{right:max(.75rem,env(safe-area-inset-right))}",
       ".g5-auth-login{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;border-radius:999px;font-size:.85rem;font-weight:600;",
       "background:linear-gradient(105deg,#ff2d95,#c026d3);color:#fff;border:0;cursor:pointer;text-decoration:none;",
       "box-shadow:0 4px 16px rgba(255,45,149,.35);transition:transform .15s,box-shadow .15s}",
@@ -45,7 +47,7 @@
       ".g5-account-modal-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}",
       ".g5-account-modal .msg{font-size:.82rem;margin-top:.5rem;min-height:1.2em}",
       ".g5-account-modal .msg.error{color:#ff6b9d}",
-      "@media (max-width:480px){.g5-auth-bar{padding:.5rem .65rem}}"
+      "@media (max-width:480px){.g5-auth-bar{right:max(3.4rem,calc(env(safe-area-inset-right) + 3.4rem))}}"
     ].join("");
     var style = document.createElement("style");
     style.id = STYLE_ID;
@@ -60,6 +62,7 @@
     bar.id = "g5-auth-bar";
     bar.className = "g5-auth-bar";
     document.body.appendChild(bar);
+    document.body.classList.add("has-auth-bar");
     return bar;
   }
 
