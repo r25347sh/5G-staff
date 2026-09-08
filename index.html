@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="G⁵ Portal - 5年G組スタッフポータル。シフト・チャット・スレッド・管理。">
+  <meta name="description" content="G⁵ Portal - 5年G組スタッフポータル。シフト・通知・管理。">
   <meta name="theme-color" content="#07050f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,6 +12,8 @@
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
   <button id="notif-bell" class="notif-bell" aria-label="通知" title="通知">
@@ -22,19 +24,22 @@
     <div class="notif-panel-header">通知</div>
     <ul id="notif-list"></ul>
   </div>
+
   <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
+
   <header class="hero">
     <div class="hero-badge">Reitaku High School · 5G Staff</div>
     <h1><span>STAFF PORTAL</span> G⁵ Portal</h1>
-    <p class="hero-sub">5年G組スタッフ専用ポータル。<br>シフト・チャット・スレッドをここから。</p>
-    <div class="hero-cta">
+    <p class="hero-sub" id="hero-sub">5年G組スタッフ専用ポータル。<br>シフト確認・管理者からの通知をここから。</p>
+    <div class="hero-cta" id="hero-cta">
       <a href="shift.html" class="btn btn-primary">シフトを確認</a>
-      <a href="login.html" class="btn btn-ghost" id="hero-login-btn">ログイン</a>
-      <a href="chat.html" class="btn btn-ghost">チャット</a>
+      <a href="notifications.html" class="btn btn-ghost" id="btn-notif-page">通知</a>
     </div>
     <p id="hero-session" class="session-label" style="margin-top:1rem;font-size:0.9rem;"></p>
   </header>
+
   <div id="banner-slot" class="banner-slot"></div>
+
   <section id="overview" class="main_section">
     <div class="section-header"><h2>機能</h2><p>スタッフ向けの主要機能</p></div>
     <div class="cards-grid">
@@ -45,16 +50,10 @@
         <a href="shift.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
       </article>
       <article class="card">
-        <div class="card-icon">💬</div>
-        <h3>クラスチャット</h3>
-        <p>スタッフ同士のグループチャット。ログインしてメッセージを送れます。</p>
-        <a href="chat.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
-      </article>
-      <article class="card">
-        <div class="card-icon">☰</div>
-        <h3>スレッド</h3>
-        <p>お知らせ・ディスカッション。返信も可能。</p>
-        <a href="threads.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
+        <div class="card-icon">📢</div>
+        <h3>通知・お知らせ</h3>
+        <p>admin / teacher からの一方通知。返信も可能です。</p>
+        <a href="notifications.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
       </article>
       <article class="card">
         <div class="card-icon">◇</div>
@@ -68,18 +67,23 @@
         <p>シフト登録・急募・通知送信・バナー設定。</p>
         <a href="admin.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
       </article>
-      <article class="card">
-        <div class="card-icon">🔑</div>
-        <h3>ログイン</h3>
-        <p>専用ログインページ。ID/パスワードまたはQR。前回IDを自動入力。</p>
-        <a href="login.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">ログインする</a>
-      </article>
     </div>
   </section>
+
+  <section class="main_section" id="recent-notif-section" hidden>
+    <div class="section-header"><h2>最近の通知</h2><p>管理者・先生からのお知らせ</p></div>
+    <div id="recent-notif-list" class="cards-grid"></div>
+  </section>
+
   <footer class="site-footer">
     <p><strong>G⁵ Portal</strong> · 5年G組スタッフポータル</p>
     <p>© 2026 Reitaku H.S. 5G</p>
   </footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script src="js/notif.js"></script>
   <script>
   (function () {
     function sync() {
@@ -88,18 +92,45 @@
       var ok = sess && ["admin", "teacher", "temporary"].indexOf(sess.role) !== -1;
       document.querySelectorAll(".card-admin-only").forEach(function (el) { el.hidden = !ok; });
       var heroSess = document.getElementById("hero-session");
-      var heroLogin = document.getElementById("hero-login-btn");
+      var heroSub = document.getElementById("hero-sub");
       if (sess) {
-        if (heroSess) heroSess.textContent = (sess.name || sess.id) + " でログイン中";
-        if (heroLogin) { heroLogin.textContent = "シフトへ"; heroLogin.href = "shift.html"; }
+        if (heroSess) heroSess.textContent = (sess.name || sess.id) + "（" + sess.role + "）でログイン中";
+        if (heroSub) heroSub.innerHTML = "ようこそ、" + (sess.name || sess.id) + " さん。<br>シフトと通知を確認できます。";
       } else {
-        if (heroSess) heroSess.textContent = "未ログイン — ログインページから入れます";
-        if (heroLogin) { heroLogin.textContent = "ログイン"; heroLogin.href = "login.html"; }
+        if (heroSess) heroSess.textContent = "未ログイン — 右上のログインから入れます";
+        if (heroSub) heroSub.innerHTML = "5年G組スタッフ専用ポータル。<br>シフト確認・管理者からの通知をここから。";
       }
     }
+
+    async function loadRecentNotifs() {
+      var section = document.getElementById("recent-notif-section");
+      var list = document.getElementById("recent-notif-list");
+      if (!section || !list || !window.G5Supabase) return;
+      var sess = G5.getSession && G5.getSession();
+      if (!sess) return;
+      try {
+        var items = await G5Supabase.fetchNotifications(sess.id);
+        if (!items.length) return;
+        section.hidden = false;
+        list.innerHTML = items.slice(0, 4).map(function (n) {
+          return (
+            '<article class="card">' +
+            '<div class="card-icon">📢</div>' +
+            "<h3>" + (n.title || "お知らせ") + "</h3>" +
+            "<p>" + (n.body || "").slice(0, 80) + (n.body && n.body.length > 80 ? "…" : "") + "</p>" +
+            '<a href="notifications.html?id=' + encodeURIComponent(n.id) + '" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">詳細・返信</a>' +
+            "</article>"
+          );
+        }).join("");
+      } catch (e) {
+        console.warn("recent notif", e);
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
       setTimeout(sync, 50);
       setTimeout(sync, 400);
+      setTimeout(loadRecentNotifs, 600);
     });
     window.addEventListener("storage", sync);
   })();
