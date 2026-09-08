@@ -98,32 +98,55 @@
 
   /**
    * QR ペイロード解析
-   * 対応形式:
-   *   {"id":"...","pass":"..."}
-   *   {id,pass} 風の簡易 JSON
-   *   id:pass
+   * 本線形式: {id,pass}  … 波括弧の中をカンマ区切り。1個目=ID / 2個目=パスワード
+   * 例: {r25347sh,kes-2592}
+   * 互換: id:pass / JSON {"id":"...","pass":"..."}
    */
   G5.parseLoginPayload = function (raw) {
     if (!raw) throw new Error("空のQRです");
     var text = String(raw).trim();
     var id = null, pass = null;
+
+    /* 1) {id,pass} 形式（本線） */
+    var brace = text.match(/^\{([\s\S]*)\}$/);
+    if (brace) {
+      var inner = brace[1].trim();
+      /* JSON っぽい {"id":...} は下の JSON へ回す */
+      if (!(inner.charAt(0) === '"' || inner.indexOf(":") !== -1 && /["']?id["']?\s*:/.test(inner))) {
+        var comma = inner.indexOf(",");
+        if (comma === -1) {
+          throw new Error("QR形式が不正です（{id,pass}）");
+        }
+        id = inner.slice(0, comma).trim();
+        pass = inner.slice(comma + 1); /* パスワード側のカンマは残す */
+        /* 余分な空白のみ trim（パスワード先頭末尾の意図的空白は基本 trim） */
+        pass = pass.replace(/^\s+/, "").replace(/\s+$/, "");
+        if (!id || pass === "") {
+          throw new Error("QRに id / pass がありません");
+        }
+        return { id: String(id), pass: String(pass) };
+      }
+    }
+
+    /* 2) JSON */
     try {
       var obj = JSON.parse(text);
       id = obj.id != null ? obj.id : obj.ID;
       pass = obj.pass != null ? obj.pass : (obj.password != null ? obj.password : obj.PASS);
-    } catch (e) {
-      if (text.indexOf(":") !== -1) {
-        var i = text.indexOf(":");
-        id = text.slice(0, i).trim();
-        pass = text.slice(i + 1);
-      } else {
-        throw new Error("QR形式が不正です（{\"id\":\"...\",\"pass\":\"...\"}）");
+      if (id != null && pass != null && pass !== "") {
+        return { id: String(id), pass: String(pass) };
       }
+    } catch (e) {}
+
+    /* 3) id:pass */
+    if (text.indexOf(":") !== -1) {
+      var i = text.indexOf(":");
+      id = text.slice(0, i).trim();
+      pass = text.slice(i + 1);
+      if (id && pass !== "") return { id: String(id), pass: String(pass) };
     }
-    if (!id || pass == null || pass === "") {
-      throw new Error("QRに id / pass がありません");
-    }
-    return { id: String(id), pass: String(pass) };
+
+    throw new Error("QR形式が不正です（{id,pass}）");
   };
 
   G5.loginWithQrText = async function (raw) {
