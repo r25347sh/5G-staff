@@ -48,6 +48,14 @@
   }
 
   async function loadShifts() {
+    if (window.G5Supabase && G5Supabase.fetchShifts) {
+      try {
+        var rows = await G5Supabase.fetchShifts();
+        if (rows && rows.length) return rows;
+      } catch (e) {
+        console.warn("Supabase shifts fallback to JSON", e);
+      }
+    }
     var res = await fetch(BASE + "/src/data/shift.json?t=" + Date.now());
     return await res.json();
   }
@@ -238,6 +246,15 @@
   }
 
   async function apiPutShifts(shifts, message) {
+    /* Prefer Supabase */
+    if (window.G5Supabase && G5Supabase.replaceAllShifts) {
+      try {
+        await G5Supabase.replaceAllShifts(shifts);
+        return { ok: true, via: "supabase" };
+      } catch (e) {
+        console.warn("Supabase put failed, fallback GitHub", e);
+      }
+    }
     var token = G5.loadTokenAsync ? await G5.loadTokenAsync() : (G5.getToken && G5.getToken());
     if (!token) throw new Error("token unavailable");
     var REPO = { owner: "r25347sh", repo: "5G-staff", branch: "main" };
