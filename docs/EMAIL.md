@@ -1,16 +1,21 @@
 # メール自動送信
 
-## 方針
+## 方針（現在の本線）
+
+**学校 Workspace 制約のため、本線は GAS + `mail_queue` です。**  
+手順は [`EMAIL-GAS.md`](./EMAIL-GAS.md) を参照。
 
 - 通知（admin/teacher 発信）時に、`user_profiles.email` が登録されているユーザーへメール
-- 送信元: `r25347sh@hs.reitaku.jp`（推奨）
-- 実装: Supabase Edge Function + Resend（無料枠あり）
+- `notify_email === false` のユーザーは除外
+- 差出人: GAS 実行アカウント（推奨 `r25347sh@hs.reitaku.jp`）
 
-## セットアップ手順
+## 代替: Resend + Edge Function
+
+ドメイン認証や SMTP が使える場合のオプション。本線が GAS のため、通常は不要。
 
 1. Resend アカウント作成 → API Key 発行
 2. Resend で Domain `hs.reitaku.jp` を追加し、学校側 DNS に SPF/DKIM を設定  
-   （学校ドメインの DNS を触れない場合は暫定で `onboarding@resend.dev` を From にし、Reply-To を `r25347sh@hs.reitaku.jp` にする）
+   （触れない場合は暫定で `onboarding@resend.dev` を From、Reply-To を学校メアド）
 3. Supabase CLI:
 
 ```bash
@@ -22,19 +27,19 @@ supabase secrets set MAIL_FROM_NAME="G⁵ Portal"
 supabase functions deploy send-notification-email
 ```
 
-4. サイト側は通知送信時に自動で `G5Supabase.notifyEmail` を呼びます（未デプロイなら無視）
+4. サイト側は `G5Email` が無い場合のみ `G5Supabase.notifyEmail`（Edge Function）を呼ぶ
 
 ## 動作条件
 
-- 受信者はアカウントメニューから **メールアドレス登録** 済みであること
-- Edge Function がデプロイされ、Secrets が設定されていること
+- 受信者はアカウントメニューから **メールアドレス登録** 済み
+- **本線**: `mail_queue` テーブル + GAS トリガー
+- **代替**: Edge Function デプロイ + Secrets
 
-## 代替案
+## 方式比較
 
 | 方式 | メリット | デメリット |
 |------|----------|------------|
-| Resend + Edge Function（採用） | 実装が軽い・配信品質 | ドメイン認証が必要 |
-| 学校 SMTP 直叩き | From を確実に学校メアドにできる | SMTP 資格情報・TLS 設定が必要 |
+| **mail_queue + GAS（採用・本線）** | 学校メアドから送れる・匿名公開不要 | GAS トリガー設定が必要 |
+| Resend + Edge Function | 実装が軽い | ドメイン認証が必要 |
+| 学校 SMTP 直叩き | From を確実に学校メアドに | 資格情報・TLS 設定 |
 | EmailJS などクライアント送信 | 手早い | キー露出・件数制限 |
-
-学校の SMTP（Outlook/Google Workspace 等）が使えるなら、Edge Function 内を SMTP 送信に差し替え可能です。

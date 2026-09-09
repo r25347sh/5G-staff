@@ -6,9 +6,9 @@
 (function () {
   "use strict";
 
-  /** 方式B用（通常は空でOK） */
-  var GAS_URL = "https://script.google.com/a/macros/hs.reitaku.jp/s/AKfycbyYoPbxIyuBBkMT9AIeaKb8KpN2RXw_0eu0nict5tdhBzX11LvfEr4NDTpIcbewsa5a/exec";
-  var GAS_TOKEN = "hedhnwedehfeufehdewuihfd0ewjfdhewifefdewlbddwbdcbwfewbcdwugcodwnferwjbfuowdicndwkoednwdnxcwidcoewdmmfewofnewbvdcyuevasjdhwepfrhfuewbwwkcwbcwedkewbdewfdwbferugfihrgbvayhxvswhdcfwdgfiewhf";
+  /** 方式B用（通常は空でOK・Workspace制限時は使えない） */
+  var GAS_URL = "";
+  var GAS_TOKEN = "";
 
   function absoluteLink(link) {
     if (!link) {
@@ -26,18 +26,89 @@
     }
   }
 
+  function uniqEmails(list) {
+    var seen = {};
+    var out = [];
+    (list || []).forEach(function (e) {
+      var em = String(e || "")
+        .trim()
+        .toLowerCase();
+      if (!em || em.indexOf("@") === -1 || seen[em]) return;
+      seen[em] = true;
+      out.push(em);
+    });
+    return out;
+  }
+
+  /** users.json からロール別 user_id を解決 */
+  async function resolveUserIdsByRole(to) {
+    if (to !== "students" && to !== "staff") return null;
+    try {
+      var base = (window.G5 && G5.BASE) || (window.__G5_BASE__ || ".");
+      var res = await fetch(String(base).replace(/\/$/, "") + "/src/data/users.json?t=" + Date.now(), {
+        cache: "no-store"
+      });
+      if (!res.ok) return null;
+      var users = await res.json();
+      if (!Array.isArray(users)) return null;
+      var ids = [];
+      users.forEach(function (u) {
+        if (!u || !u.id) return;
+        if (to === "students") {
+          if (u.role === "student" || u.role === "temporary") ids.push(u.id);
+        } else if (to === "staff") {
+          if (u.role === "admin" || u.role === "teacher" || u.role === "temporary") ids.push(u.id);
+        }
+      });
+      return ids;
+    } catch (e) {
+      console.warn("[G5Email] users.json", e);
+      return null;
+    }
+  }
+
+  /**
+   * to: "all" | "students" | "staff" | userId | userId[]
+   * notify_email が false の行は除外（null/true は送信対象）
+   */
   async function resolveEmails(to) {
     if (!window.G5Supabase || !G5Supabase.getClient) return [];
     try {
       var sb = await G5Supabase.getClient();
-      var q = sb.from("user_profiles").select("email, user_id").not("email", "is", null);
-      if (Array.isArray(to) && to.length) q = q.in("user_id", to);
-      else if (typeof to === "string" && to !== "all" && to !== "students" && to !== "staff") {
+      var roleIds = null;
+      if (to === "students" || to === "staff") {
+        roleIds = await resolveUserIdsByRole(to);
+        if (roleIds && !roleIds.length) return [];
+      }
+
+      var q = sb
+        .from("user_profiles")
+        .select("email, user_id, notify_email")
+        .not("email", "is", null);
+
+      if (Array.isArray(to) && to.length) {
+        q = q.in("user_id", to);
+      } else if (roleIds) {
+        q = q.in("user_id", roleIds);
+      } else if (typeof to === "string" && to !== "all" && to !== "students" && to !== "staff") {
         q = q.eq("user_id", to);
       }
+
       var res = await q;
       if (res.error) throw res.error;
-      return (res.data || []).map(function (r) { return r.email; }).filter(Boolean);
+
+      var emails = (res.data || [])
+        .filter(function (r) {
+          if (!r || !r.email) return false;
+          /* false のみ除外。未設定・true は送る */
+          if (r.notify_email === false) return false;
+          return true;
+        })
+        .map(function (r) {
+          return r.email;
+        });
+
+      return uniqEmails(emails);
     } catch (e) {
       console.warn("[G5Email] profiles", e);
       return [];
@@ -49,7 +120,7 @@
     if (!window.G5Supabase || !G5Supabase.getClient) {
       return { ok: false, reason: "no supabase" };
     }
-    var list = emails && emails.length ? emails : await resolveEmails(item && item.to);
+    var list = emails && emails.length ? uniqEmails(emails) : await resolveEmails(item && item.to);
     if (!list.length) return { ok: true, sent: 0, reason: "no emails" };
 
     var sb = await G5Supabase.getClient();
@@ -66,10 +137,11 @@
     return { ok: true, queued: true, id: res.data && res.data.id, recipients: list.length };
   }
 
-  /** 方式B: 直接 GAS（ドメインが「全員」許可のとき） */
+  /** 方式B: 直接 GAS（ドメインが「全員」許可のときのみ） */
   async function postToGas(item, emails) {
     if (!GAS_URL || !GAS_TOKEN) return { ok: false, skipped: true };
-    var list = emails && emails.length ? emails : await resolveEmails(item && item.to);
+    var list = emails && emails.length ? uniqEmails(emails) : await resolveEmails(item && item.to);
+    if (!list.length) return { ok: true, sent: 0, reason: "no emails" };
     var res = await fetch(GAS_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -93,13 +165,11 @@
 
   async function sendNotificationEmail(item, emails) {
     try {
-      /* 本線: キュー */
       var q = await enqueue(item, emails);
       if (q && q.ok) return q;
     } catch (e) {
       console.warn("[G5Email] queue failed", e);
     }
-    /* 予備: 直接 GAS */
     try {
       return await postToGas(item, emails);
     } catch (e2) {
