@@ -115,14 +115,26 @@
       author_name: payload.author_name || null,
       author_role: payload.author_role || null,
       target: payload.target == null ? "all" : payload.target,
+      type: payload.type || "broadcast",
+      level: payload.level || "normal",
+      link: payload.link || null,
       created_at: payload.created_at || new Date().toISOString()
     };
     var res = await sb.from("notifications").insert(row).select().single();
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) {
+      /* 旧スキーマ（type/level/link なし）フォールバック */
+      if (/type|level|link/i.test(res.error.message || "")) {
+        delete row.type;
+        delete row.level;
+        delete row.link;
+        res = await sb.from("notifications").insert(row).select().single();
+      }
+      if (res.error) throw new Error(res.error.message);
+    }
     var data = res.data || {};
-    data.type = payload.type || "broadcast";
-    data.level = payload.level || "normal";
-    data.link = payload.link || "";
+    data.type = data.type || payload.type || "broadcast";
+    data.level = data.level || payload.level || "normal";
+    data.link = data.link || payload.link || "";
     return data;
   }
 
