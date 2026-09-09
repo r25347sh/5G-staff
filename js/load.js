@@ -6,7 +6,7 @@
  */
 (function () {
   "use strict";
-  var CACHE_VER = "20260909a";
+  var CACHE_VER = "20260909b";
 
   function detectBase() {
     var path = location.pathname;
@@ -37,7 +37,6 @@
     var bare = href.split("?")[0];
     var name = bare.split("/").pop();
     if (alreadyHas('link[href*="' + name + '"]')) return;
-    /* preload してから stylesheet に切替（描画ブロック軽減） */
     var pre = document.createElement("link");
     pre.rel = "preload";
     pre.as = "style";
@@ -48,7 +47,6 @@
       if (media) pre.media = media;
     };
     document.head.appendChild(pre);
-    /* フォールバック */
     setTimeout(function () {
       if (pre.rel !== "stylesheet") {
         pre.rel = "stylesheet";
@@ -75,7 +73,6 @@
     document.head.appendChild(script);
   }
 
-  /* フォント: @import 禁止 → 非ブロッキング link */
   if (!alreadyHas('link[href*="fonts.googleapis.com"]')) {
     var preconn1 = document.createElement("link");
     preconn1.rel = "preconnect";
@@ -113,7 +110,6 @@
   else if (path.indexOf("notification") !== -1) pageCss = "css/portal.css";
   injectCss(p(pageCss) + q);
 
-  /* JS は依存順だが並列プリロード風に直列完了 */
   var jsQueue = [p("js/common.js") + q, p("js/api.js") + q, p("js/supabase.js") + q, p("js/email.js") + q, p("js/realtime.js") + q, p("js/notif.js") + q, p("js/auth-ui.js") + q, p("menu/menu.js") + q];
   function loadNext(i) {
     if (i >= jsQueue.length) {
