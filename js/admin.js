@@ -576,7 +576,9 @@
     showMsg(msg, "送信中…");
     try {
       if (!window.G5Notif || !G5Notif.sendNotification) throw new Error("通知モジュール未読込");
-      await G5Notif.sendNotification({
+      if (!window.G5Supabase) console.warn("G5Supabase 未読込");
+      if (!window.G5Email) console.warn("G5Email 未読込");
+      var result = await G5Notif.sendNotification({
         to: to,
         title: title,
         body: body,
@@ -584,7 +586,17 @@
         level: level,
         link: link
       });
-      showMsg(msg, "送信しました");
+      var em = result && result._email;
+      var extra = "";
+      if (em) {
+        if (em.queued) extra = " / メールキュー投入 " + (em.recipients || 0) + "件";
+        else if (em.reason === "no emails") extra = " / メールなし（宛先に email 登録者なし。右上で登録 or 宛先「全員」）";
+        else if (em.ok === false) extra = " / メール失敗: " + (em.error || em.reason || "");
+        else if (em.skipped) extra = " / メールモジュール待機";
+      } else {
+        extra = " / メール処理なし（G5Email 未読込の可能性）";
+      }
+      showMsg(msg, "送信しました" + extra, !!(em && em.reason === "no emails"));
       document.getElementById("notify-title").value = "";
       document.getElementById("notify-body").value = "";
       loadNotifyHistory();
