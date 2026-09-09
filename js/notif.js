@@ -730,6 +730,15 @@
   }
 
   function startPolling() {
+    /* サーバ通知削除後のローカル残骸を1回掃除 */
+    try {
+      if (!localStorage.getItem("g5_notif_schema_v2")) {
+        localStorage.removeItem("g5_notif_inbox");
+        localStorage.removeItem("g5_notif_read");
+        localStorage.removeItem("g5_notif_pushed");
+        localStorage.setItem("g5_notif_schema_v2", "1");
+      }
+    } catch (e) {}
     renderInboxFromStore();
     if (window.__G5_NOTIF_WIPED__) {
       var list = document.getElementById("notif-list");
