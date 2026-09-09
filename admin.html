@@ -189,7 +189,7 @@
       </div>
 
       <div id="tab-notify" class="tab-panel" hidden>
-        <p class="hint-text">admin / teacher から生徒への一対一・一対多通知。サイト内ベル＋プッシュ通知に届きます。</p>
+        <p class="hint-text">admin / teacher から生徒への一対一・一対多通知。サイト内ベル＋プッシュ通知に届きます。メール登録者にはメールも送信されます。</p>
         <div class="form-row form-row-wrap">
           <label class="field" style="min-width:100%;">
             <span>宛先</span>
@@ -238,10 +238,7 @@
     </section>
   </main>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
-  <script src="js/common.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/realtime.js"></script>
-  <script src="js/notif.js"></script>
+  <!-- load.js が common/api/supabase/email/notif/auth-ui を読込済み。ページ固有のみ追加 -->
   <script src="src/js/shift.js"></script>
   <script src="js/qr-login.js"></script>
   <script src="js/admin.js"></script>
