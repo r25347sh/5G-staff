@@ -80,19 +80,25 @@ function sendMail_(title, body, fromName, link, emails) {
   var text = body || "";
   fromName = fromName || "G⁵ Portal";
   var html =
-    '<div style="font-family:sans-serif;line-height:1.6;color:#222">' +
-    "<h2 style='margin:0 0 12px'>" +
+    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,\'Hiragino Sans\',\'Noto Sans JP\',sans-serif;line-height:1.65;color:#1a1525;max-width:560px;margin:0 auto;background:#f8f6fc;border-radius:16px;overflow:hidden;border:1px solid #e8e0f0;">' +
+    '<div style="background:linear-gradient(105deg,#ff2d95,#c026d3);padding:18px 22px;color:#fff;">' +
+    '<div style="font-size:13px;opacity:0.9;letter-spacing:0.04em;">G⁵ Portal</div>' +
+    '<h1 style="margin:6px 0 0;font-size:20px;font-weight:700;">' +
     escapeHtml_(title || "お知らせ") +
-    "</h2>" +
-    "<p style='white-space:pre-wrap;margin:0 0 16px'>" +
+    "</h1></div>" +
+    '<div style="padding:22px 22px 8px;">' +
+    "<p style='white-space:pre-wrap;margin:0 0 18px;font-size:15px;color:#2a2438;'>" +
     escapeHtml_(text) +
     "</p>" +
-    "<p style='font-size:13px;color:#666'>送信: " +
+    (link
+      ? "<p style='margin:0 0 18px;'><a href='" +
+        escapeHtml_(link) +
+        "' style='display:inline-block;padding:10px 18px;background:linear-gradient(105deg,#ff2d95,#c026d3);color:#fff;text-decoration:none;border-radius:999px;font-weight:600;font-size:14px;'>ポータルで開く</a></p>"
+      : "") +
+    "<p style='font-size:13px;color:#6b6280;margin:0;'>送信: " +
     escapeHtml_(fromName) +
-    "</p>" +
-    (link ? "<p><a href='" + escapeHtml_(link) + "'>ポータルで開く</a></p>" : "") +
-    "<hr style='border:none;border-top:1px solid #eee;margin:20px 0'/>" +
-    "<p style='font-size:12px;color:#999'>G⁵ Portal · 麗澤 5年G組スタッフ</p></div>";
+    "</p></div>" +
+    "<div style='padding:14px 22px 18px;border-top:1px solid #ebe4f4;background:#f0ebf7;'><p style='margin:0;font-size:12px;color:#8a8199;'>G⁵ Portal · 麗澤高校 5年G組スタッフ</p></div></div>";
 
   var list = [];
   var seen = {};
