@@ -1,12 +1,12 @@
 /**
  * G⁵ Portal - shift.js
  * 日付は 2026-09-12 固定（時間のみ）
- * 間近 = 開始10分前 / 急募（対象・人数・満了通知）
+ * 間近 = 開始15分前 / 急募（対象・人数・満了通知）
  */
 (function () {
   "use strict";
   var BASE = (window.G5 && G5.BASE) || ".";
-  var NEAR_MINUTES = 10;
+  var NEAR_MINUTES = 15;
   var EVENT_DATE = "2026-09-12";
   var EVENT_LABEL = "9/12";
 
