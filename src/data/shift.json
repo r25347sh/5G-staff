@@ -486,5 +486,16 @@
     "note": "",
     "open": false,
     "urgent": false
+  },
+  {
+    "shift_id": "sg4kr4k36",
+    "user_id": "r25347sh",
+    "date": "2026-09-12",
+    "time_start": "00:00",
+    "time_end": "13:00",
+    "tanto": "総務",
+    "note": "入場規制の可能性あり",
+    "open": false,
+    "urgent": false
   }
 ]
