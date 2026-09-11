@@ -319,8 +319,9 @@
   }
 
   function indexAtRotation(R) {
+    /* +R = clockwise. Index i is under pointer when R ≡ -i*POCKET (mod 360). */
     var a = ((R % 360) + 360) % 360;
-    var idx = Math.round(a / POCKET) % 37;
+    var idx = Math.round(-a / POCKET) % 37;
     if (idx < 0) idx += 37;
     return idx;
   }
@@ -330,7 +331,7 @@
   }
 
   function targetRotationForIndex(winIndex, extraSpins) {
-    return extraSpins * 360 + winIndex * POCKET;
+    return extraSpins * 360 + (((-winIndex * POCKET) % 360) + 360) % 360;
   }
 
   function setResultUI(n) {
@@ -399,11 +400,12 @@
     var winIndex = Math.floor(Math.random() * 37);
     var winNumber = ORDER[winIndex];
 
-    /* 2) Animate wheel to that pocket */
+    /* 2) Animate wheel to that pocket (clockwise convention) */
     var extra = 4 + Math.floor(Math.random() * 3);
     var startRot = rotation;
     var currentMod = ((startRot % 360) + 360) % 360;
-    var desiredMod = ((winIndex * POCKET) % 360 + 360) % 360;
+    /* Pointer at top when rotation ≡ -winIndex * POCKET */
+    var desiredMod = (((-winIndex * POCKET) % 360) + 360) % 360;
     var delta = desiredMod - currentMod;
     if (delta < 0) delta += 360;
     var target = startRot + delta + extra * 360;
