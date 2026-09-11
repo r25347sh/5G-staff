@@ -201,31 +201,117 @@
     };
   }
 
+  /**
+   * LIFF の redirectUri は「Endpoint URL で始まる URL」である必要がある。
+   * クエリ付き location.href を渡すと access.line.me で 400 になることが多いため、
+   * origin + pathname のみを使う。戻り先は sessionStorage に別保存。
+   */
+    function getLiffRedirectUri(preferLoginPage) {
+    var origin = location.origin || "";
+    var pathname = location.pathname || "/";
+    if (preferLoginPage) {
+      /* 同一ディレクトリの login.html（GitHub Pages の /repo/login.html 対応） */
+      if (/login\.html$/i.test(pathname)) {
+        return origin + pathname;
+      }
+      var dir = pathname.replace(/\/[^/]*$/, "/");
+      if (dir.indexOf("/") !== 0) dir = "/" + dir;
+      return origin + dir + "login.html";
+    }
+    return origin + pathname;
+  }
+function stashLineReturn() {
+    try {
+      sessionStorage.setItem("g5_line_return", location.href.split("#")[0]);
+      var params = new URLSearchParams(location.search || "");
+      var next = params.get("next");
+      if (next) sessionStorage.setItem("g5_line_next", next);
+    } catch (e) {}
+  }
+
+  function consumeLineNext() {
+    try {
+      var n = sessionStorage.getItem("g5_line_next");
+      if (n) {
+        sessionStorage.removeItem("g5_line_next");
+        return n;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  var _liffInitPromise = null;
+
   async function ensureLiff() {
-    if (!LIFF_ID) {
+    if (!LIFF_ID || LIFF_ID.indexOf("ここに") !== -1) {
       throw new Error(
-        "LIFF_ID 未設定です。js/auth-ui.js の LIFF_ID に LINE Developers の LIFF App ID を入れてください。"
+        "LIFF_ID 未設定です。LINE Developers で LIFF アプリを作成し、js/auth-ui.js の LIFF_ID を設定してください。"
       );
     }
     if (!window.liff) {
       await new Promise(function (resolve, reject) {
+        var existing = document.querySelector('script[src*="liff/edge"]');
+        if (existing) {
+          existing.addEventListener("load", resolve);
+          existing.addEventListener("error", function () {
+            reject(new Error("LIFF SDK の読み込みに失敗しました"));
+          });
+          /* 既に load 済みの場合 */
+          if (window.liff) resolve();
+          return;
+        }
         var s = document.createElement("script");
         s.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+        s.async = true;
         s.onload = resolve;
         s.onerror = function () {
-          reject(new Error("LIFF SDK の読み込みに失敗しました"));
+          reject(new Error("LIFF SDK の読み込みに失敗しました（ネットワーク）"));
         };
         document.head.appendChild(s);
       });
     }
-    await liff.init({ liffId: LIFF_ID });
+    if (!_liffInitPromise) {
+      _liffInitPromise = liff
+        .init({
+          liffId: LIFF_ID,
+          /* 外部ブラウザ（Chrome 等）でもログインできるようにする */
+          withLoginOnExternalBrowser: true
+        })
+        .catch(function (err) {
+          _liffInitPromise = null;
+          var msg = (err && (err.message || err.code)) || String(err);
+          throw new Error(
+            "LIFF 初期化に失敗: " +
+              msg +
+              "\n\nLINE Developers の Endpoint URL がこのサイトの URL（例: https://＜user＞.github.io/5G-staff/）と一致しているか確認してください。"
+          );
+        });
+    }
+    await _liffInitPromise;
+  }
+
+  /** LINE ログイン画面へ。redirectUri はクエリ無しの正規 URL のみ */
+  async function startLineLogin(options) {
+    options = options || {};
+    await ensureLiff();
+    if (liff.isLoggedIn()) return true;
+    stashLineReturn();
+    var redirectUri = getLiffRedirectUri(!!options.preferLoginPage);
+    try {
+      liff.login({ redirectUri: redirectUri });
+    } catch (e) {
+      /* redirectUri 拒否時はデフォルト（Endpoint URL）へフォールバック */
+      console.warn("[LINE] login with redirectUri failed, retry default", e);
+      liff.login();
+    }
+    return false;
   }
 
   async function linkLine() {
     try {
       await ensureLiff();
       if (!liff.isLoggedIn()) {
-        liff.login({ redirectUri: location.href.split("#")[0] });
+        await startLineLogin({ preferLoginPage: false });
         return;
       }
       var profile = await liff.getProfile();
@@ -361,6 +447,9 @@
     openEmailModal: openEmailModal,
     linkLine: linkLine,
     tryAutoLoginWithLine: tryAutoLoginWithLine,
-    ensureLiff: ensureLiff
+    ensureLiff: ensureLiff,
+    startLineLogin: startLineLogin,
+    getLiffRedirectUri: getLiffRedirectUri,
+    consumeLineNext: consumeLineNext
   };
 })();
