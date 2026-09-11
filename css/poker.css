@@ -1,0 +1,380 @@
+/* G⁵ Poker — Black & Red Modern Casino Night */
+
+:root {
+  --pk-bg: #0a0508;
+  --pk-bg2: #14080c;
+  --pk-red: #e11d48;
+  --pk-red-deep: #9f1239;
+  --pk-red-glow: rgba(225, 29, 72, 0.45);
+  --pk-gold: #f5d76e;
+  --pk-gold-dim: #c4a035;
+  --pk-cream: #f8e9e0;
+  --pk-muted: rgba(248, 233, 224, 0.55);
+  --pk-line: rgba(225, 29, 72, 0.35);
+  --pk-felt: #1a0a10;
+}
+
+.poker-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 4rem;
+  position: relative;
+  z-index: 1;
+  color: var(--pk-cream);
+}
+
+.poker-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(225, 29, 72, 0.22), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(159, 18, 57, 0.18), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 10% 60%, rgba(245, 215, 110, 0.06), transparent 45%),
+    linear-gradient(180deg, #0a0508 0%, #12060a 100%);
+}
+
+.poker-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.poker-header .tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pk-gold);
+  border: 1px solid rgba(245, 215, 110, 0.4);
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.65rem;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.poker-header h1 {
+  font-family: var(--font-display, Cinzel, serif);
+  font-size: clamp(1.85rem, 5.5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0;
+  background: linear-gradient(105deg, #fff 8%, var(--pk-cream) 35%, var(--pk-red) 70%, var(--pk-gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px var(--pk-red-glow);
+}
+
+.poker-header p {
+  margin: 0.5rem 0 0;
+  color: var(--pk-muted);
+  font-size: 0.92rem;
+}
+
+.poker-table {
+  position: relative;
+  margin: 0 auto 1.25rem;
+  padding: 1.5rem 1.1rem 1.35rem;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse at 50% 40%, #2a1018 0%, var(--pk-felt) 55%, #0c0408 100%);
+  border: 2px solid var(--pk-line);
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.5),
+    0 0 0 6px rgba(245, 215, 110, 0.25),
+    0 20px 50px rgba(0, 0, 0, 0.55),
+    inset 0 0 60px rgba(225, 29, 72, 0.08);
+  overflow: hidden;
+}
+
+.poker-table::after {
+  content: "G⁵";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display, Cinzel, serif);
+  font-size: clamp(3rem, 12vw, 5rem);
+  font-weight: 700;
+  color: rgba(245, 215, 110, 0.06);
+  letter-spacing: 0.15em;
+  pointer-events: none;
+}
+
+.table-label {
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: var(--pk-gold-dim);
+  margin-bottom: 0.85rem;
+  text-transform: uppercase;
+}
+
+.community-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  min-height: 5.5rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hand-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  min-height: 5.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hand-caption {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--pk-muted);
+  margin: 0.35rem 0 0.5rem;
+}
+
+.card {
+  width: 3.4rem;
+  height: 4.85rem;
+  border-radius: 0.45rem;
+  background: #faf7f2;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.28rem 0.2rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.card.red {
+  color: #c0102e;
+}
+
+.card.black {
+  color: #1a1a1a;
+}
+
+.card .suit {
+  font-size: 1.35rem;
+}
+
+.card.back {
+  background: linear-gradient(145deg, #7f1d1d 0%, #450a0a 45%, #1c0508 100%);
+  border: 1px solid rgba(245, 215, 110, 0.35);
+  color: var(--pk-gold);
+  justify-content: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.card.back::before {
+  content: "♠";
+  font-size: 1.4rem;
+  opacity: 0.85;
+}
+
+.card.placeholder {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(245, 215, 110, 0.25);
+  box-shadow: none;
+  color: transparent;
+}
+
+.pot-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pot-chip {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(245, 215, 110, 0.35);
+  color: var(--pk-gold);
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.balance-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.stat-pill {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(20, 8, 12, 0.85);
+  border: 1px solid var(--pk-line);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.stat-pill .label {
+  font-size: 0.72rem;
+  color: var(--pk-muted);
+  letter-spacing: 0.08em;
+}
+
+.stat-pill .value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--pk-cream);
+  margin-top: 0.2rem;
+}
+
+.stat-pill .value.gold {
+  color: var(--pk-gold);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  margin: 1rem 0 0.5rem;
+}
+
+.actions .btn {
+  min-width: 7.5rem;
+}
+
+.btn-poker {
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1.15rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.btn-poker:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-poker:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.btn-deal {
+  background: linear-gradient(105deg, var(--pk-red-deep), var(--pk-red));
+  color: #fff;
+  box-shadow: 0 4px 18px var(--pk-red-glow);
+}
+
+.btn-fold {
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--pk-cream);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-call {
+  background: linear-gradient(105deg, #14532d, #16a34a);
+  color: #fff;
+}
+
+.btn-raise {
+  background: linear-gradient(105deg, #854d0e, var(--pk-gold-dim));
+  color: #1a1000;
+}
+
+.btn-show {
+  background: linear-gradient(105deg, #4c1d95, #7c3aed);
+  color: #fff;
+}
+
+.msg-board {
+  text-align: center;
+  min-height: 2.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--pk-cream);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.msg-board strong {
+  color: var(--pk-gold);
+}
+
+.rules-compact {
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 16px;
+  background: rgba(10, 5, 8, 0.9);
+  border: 1px solid var(--pk-line);
+}
+
+.rules-compact h2 {
+  font-size: 1rem;
+  margin: 0 0 0.65rem;
+  color: var(--pk-gold);
+  letter-spacing: 0.04em;
+}
+
+.rules-compact ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--pk-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.rules-compact li {
+  margin-bottom: 0.35rem;
+}
+
+.rules-compact a {
+  color: var(--pk-red);
+}
+
+.hand-result {
+  text-align: center;
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+  color: var(--pk-gold);
+  font-weight: 600;
+  min-height: 1.4rem;
+}
+
+@media (max-width: 480px) {
+  .card {
+    width: 2.9rem;
+    height: 4.15rem;
+    font-size: 0.95rem;
+  }
+  .actions .btn-poker {
+    flex: 1 1 calc(50% - 0.55rem);
+    min-width: 0;
+  }
+}
