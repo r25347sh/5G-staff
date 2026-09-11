@@ -8,7 +8,7 @@
   var BASE = (window.G5 && G5.BASE) || ".";
   var REPO = { owner: "r25347sh", repo: "5G-staff", branch: "main" };
   var ALLOWED = ["admin", "teacher", "temporary"];
-  var TANTO_OPTIONS = ["受付", "総務", "ブラックジャック", "ポーカー", "チンチロ"];
+  var TANTO_OPTIONS = ["受付", "総務", "ブラックジャック", "ポーカー", "チンチロ", "ルーレット"];
   var EVENT_DATE = "2026-09-12";
   var shiftsCache = [];
   var usersCache = [];
@@ -406,272 +406,93 @@
       if (sent.indexOf(s.shift_id) !== -1) continue;
       var filled = s.slots_filled || (s.assignees && s.assignees.length) || 0;
       if (filled >= (s.slots_needed || 1)) continue;
-      var to = (s.target === "all" || !s.target) ? "all" : (Array.isArray(s.target) ? s.target.concat(["staff"]) : [s.target, "staff"]);
+      var timeLabel = s.time_start + "–" + s.time_end;
+      var title = "急募のお知らせ";
+      var body = timeLabel + "（" + (s.tanto || "担当") + "）募集中";
+      if (s.note) body += " — " + s.note;
       await G5Notif.sendNotification({
-        to: to,
-        title: "急募のお知らせ",
-        body: (s.time_start || "") + "–" + (s.time_end || "") + "（" + (s.tanto || "") + "）募集中" + (s.note ? " — " + s.note : ""),
+        title: title,
+        body: body,
+        author_id: ((window.G5 && G5.getSession()) || {}).id || "admin",
+        author_name: ((window.G5 && G5.getSession()) || {}).name || "管理者",
+        author_role: ((window.G5 && G5.getSession()) || {}).role || "admin",
+        target: s.target || "all",
         type: "urgent",
         level: "urgent",
         link: "shift.html"
       });
       sent.push(s.shift_id);
     }
-    try { localStorage.setItem("g5_urgent_notified_ids", JSON.stringify(sent.slice(-50))); } catch (e) {}
-  }
-
-  function fillNotifyUsers() {
-    var sel = document.getElementById("notify-users");
-    if (!sel) return;
-    sel.innerHTML = usersCache.map(function (u) {
-      return '<option value="' + u.id + '">' + (u.name || u.id) + "（" + u.role + "）</option>";
-    }).join("");
-  }
-
-  async function loadNotifyHistory() {
-    var box = document.getElementById("notify-history");
-    if (!box) return;
-    try {
-      var list = window.G5Api ? await G5Api.fetchJson("src/data/notifications.json") : [];
-      if (!Array.isArray(list)) list = [];
-      list = list.slice().reverse().slice(0, 15);
-      if (!list.length) { box.innerHTML = "<p class='hint-text'>まだ通知はありません</p>"; return; }
-      box.innerHTML = list.map(function (n) {
-        var to = n.to === "all" ? "全員" : n.to === "students" ? "全生徒" : Array.isArray(n.to) ? n.to.join(", ") : String(n.to || "");
-        return "<div class='admin-card' style='padding:0.65rem 0.85rem;margin-bottom:0.4rem;'><strong>" + (n.title || "") + "</strong> <span class='hint-text'>→ " + to + "</span><br><span>" + (n.body || "") + "</span><br><span class='hint-text'>" + (n.from_name || n.from_id || "") + " · " + (n.created_at || "") + "</span></div>";
-      }).join("");
-    } catch (e) {
-      box.innerHTML = "<p class='msg error'>履歴の取得に失敗</p>";
-    }
-  }
-
-  async function sendAdminNotify() {
-    var msg = document.getElementById("notify-msg");
-    var mode = (document.getElementById("notify-to") || {}).value || "students";
-    var title = ((document.getElementById("notify-title") || {}).value || "").trim();
-    var body = ((document.getElementById("notify-body") || {}).value || "").trim();
-    var link = (document.getElementById("notify-link") || {}).value || "";
-    var level = (document.getElementById("notify-level") || {}).value || "normal";
-    if (!title || !body) { showMsg(msg, "タイトルと本文を入力してください", true); return; }
-    var to = "students";
-    if (mode === "all") to = "all";
-    else if (mode === "one" || mode === "multi") {
-      var sel = document.getElementById("notify-users");
-      var ids = [];
-      if (sel) Array.prototype.forEach.call(sel.selectedOptions, function (o) { ids.push(o.value); });
-      if (!ids.length) { showMsg(msg, "宛先ユーザーを選択してください", true); return; }
-      to = mode === "one" ? ids[0] : ids;
-    }
-    showMsg(msg, "送信中…");
-    try {
-      if (!window.G5Notif || !G5Notif.sendNotification) throw new Error("通知モジュール未読込");
-      await G5Notif.sendNotification({
-        to: to, title: title, body: body,
-        type: mode === "all" || mode === "students" ? "broadcast" : "direct",
-        level: level, link: link
-      });
-      showMsg(msg, "送信しました");
-      loadNotifyHistory();
-    } catch (e) {
-      showMsg(msg, "失敗: " + (e.message || e), true);
-    }
-  }
-
-  async function saveBanner() {
-    var msg = document.getElementById("banner-save-msg");
-    showMsg(msg, "保存中…");
-    try {
-      var pages = [];
-      document.querySelectorAll(".banner-page:checked").forEach(function (cb) { pages.push(cb.value); });
-      var banner = {
-        enabled: document.getElementById("banner-enabled").checked,
-        text: document.getElementById("banner-text").value || "",
-        link: document.getElementById("banner-link").value || "",
-        pages: pages
-      };
-      await apiPut("src/data/banner.json", JSON.stringify(banner, null, 2), "admin: update banner");
-      showMsg(msg, "保存しました");
-    } catch (e) {
-      showMsg(msg, "失敗: " + e.message, true);
-    }
+    try { localStorage.setItem("g5_urgent_notified_ids", JSON.stringify(sent)); } catch (e) {}
   }
 
   function exportCSV() {
-    var map = Object.fromEntries(usersCache.map(function (u) { return [u.id, u]; }));
-    var header = ["shift_id", "date", "time_start", "time_end", "user_id", "name", "tanto", "urgent", "open", "slots_needed", "slots_filled", "target", "note"];
-    var rows = [header.join(",")];
-    shiftsCache.slice().sort(function (a, b) { return a.time_start < b.time_start ? -1 : 1; }).forEach(function (s) {
-      var name = (map[s.user_id] || {}).name || (s.user_id === "open" ? "募集枠" : s.user_id || "");
-      var target = s.target === "all" || !s.target ? "all" : Array.isArray(s.target) ? s.target.join("|") : s.target;
-      rows.push([s.shift_id, s.date || EVENT_DATE, s.time_start, s.time_end, s.user_id || "", '"' + name + '"', '"' + (s.tanto || "") + '"', s.urgent ? "1" : "0", s.open || s.user_id === "open" ? "1" : "0", s.slots_needed || 1, s.slots_filled || 0, '"' + target + '"', '"' + (s.note || "") + '"'].join(","));
+    var header = "shift_id,user_id,date,time_start,time_end,tanto,open,urgent,note,slots_needed,slots_filled\n";
+    var rows = shiftsCache.map(function (s) {
+      return [
+        s.shift_id || "",
+        s.user_id || "",
+        s.date || EVENT_DATE,
+        s.time_start || "",
+        s.time_end || "",
+        s.tanto || "",
+        s.open ? "1" : "0",
+        s.urgent ? "1" : "0",
+        (s.note || "").replace(/,/g, " "),
+        s.slots_needed || 1,
+        s.slots_filled || 0
+      ].join(",");
     });
-    var blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    var blob = new Blob(["\uFEFF" + header + rows.join("\n")], { type: "text/csv;charset=utf-8" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "5G-shifts-0912.csv";
+    a.download = "shifts_" + EVENT_DATE + ".csv";
     a.click();
-    URL.revokeObjectURL(a.href);
   }
 
-  function exportPDF() {
-    var map = Object.fromEntries(usersCache.map(function (u) { return [u.id, u]; }));
-    var sorted = shiftsCache.slice().sort(function (a, b) { return a.time_start < b.time_start ? -1 : 1; });
-    var body = "<h1>G⁵ シフト表（9/12）</h1><p>出力日時: " + new Date().toLocaleString("ja-JP") + "</p><table><thead><tr><th>時間</th><th>担当者</th><th>役割</th><th>状態</th></tr></thead><tbody>";
-    sorted.forEach(function (s) {
-      var isOpen = !s.user_id || s.user_id === "open" || s.open;
-      var name = isOpen ? ((s.urgent ? "急募" : "募集") + " " + (s.slots_filled || 0) + "/" + (s.slots_needed || 1)) : ((map[s.user_id] || {}).name || s.user_id || "—");
-      var st = s.urgent && isOpen ? "急募" : isOpen ? "募集中" : "確定";
-      body += "<tr><td>" + s.time_start + "–" + s.time_end + "</td><td>" + name + "</td><td>" + (s.tanto || "—") + "</td><td>" + st + "</td></tr>";
-    });
-    body += "</tbody></table>";
-    var w = window.open("", "_blank");
-    if (!w) { alert("ポップアップを許可してください"); return; }
-    w.document.write("<!DOCTYPE html><html><head><meta charset=utf-8><title>シフト表</title><style>body{font-family:sans-serif;padding:1rem}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px 10px;text-align:left}th{background:#f5f5f5}</style></head><body>" + body + "</body></html>");
-    w.document.close();
-    w.focus();
-    setTimeout(function () { w.print(); }, 300);
+  function delShift(i) {
+    if (!confirm("このシフトを削除しますか？")) return;
+    shiftsCache.splice(i, 1);
+    renderAdminShifts();
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    var sess = G5.getSession && G5.getSession();
-    if (sess && ALLOWED.indexOf(sess.role) !== -1) enterAdmin(sess);
-    else if (sess) showMsg(document.getElementById("login-msg"), "管理権限がありません", true);
-
-    var last = G5.getLastLoginId && G5.getLastLoginId();
-    if (last) {
-      var idEl = document.getElementById("login-id");
-      if (idEl && !idEl.value) idEl.value = last;
-    }
-
-    window.__g5_onLoginSuccess = function (u) {
-      if (!u) u = G5.getSession();
-      if (!u || ALLOWED.indexOf(u.role) === -1) {
-        showMsg(document.getElementById("login-msg"), "管理権限がありません", true);
-        G5.clearSession();
-        return;
-      }
-      enterAdmin(u);
-    };
-
-    document.getElementById("login-form").addEventListener("submit", doLogin);
-    document.getElementById("btn-logout").addEventListener("click", function () {
-      G5.clearSession();
-      location.reload();
-    });
-
-    var tokBtn = document.getElementById("btn-set-token");
-    if (tokBtn) tokBtn.addEventListener("click", function () {
-      var cur = "";
-      try { cur = localStorage.getItem("g5_gh_token") || ""; } catch (e) {}
-      var v = prompt("GitHub PAT（repo権限）。空で削除。", cur ? "（設定済み・変更する場合は貼付）" : "");
-      if (v === null) return;
-      if (v === "" || v.indexOf("設定済み") !== -1) {
-        if (v === "") { try { localStorage.removeItem("g5_gh_token"); } catch (e) {} alert("トークンを削除しました"); }
-        return;
-      }
-      try { localStorage.setItem("g5_gh_token", v.trim()); alert("トークンを保存しました"); } catch (e) { alert("保存失敗"); }
-    });
-
-    document.getElementById("btn-add-shift").addEventListener("click", addShift);
-    document.getElementById("btn-save-shifts").addEventListener("click", saveShifts);
-    document.getElementById("btn-save-banner").addEventListener("click", saveBanner);
-
-    var notifyBtn = document.getElementById("btn-send-notify");
-    if (notifyBtn) notifyBtn.addEventListener("click", sendAdminNotify);
-    var notifyTo = document.getElementById("notify-to");
-    if (notifyTo) {
-      notifyTo.addEventListener("change", function () {
-        var wrap = document.getElementById("notify-users-wrap");
-        if (wrap) wrap.hidden = notifyTo.value !== "one" && notifyTo.value !== "multi";
-        var sel = document.getElementById("notify-users");
-        if (sel) sel.multiple = notifyTo.value === "multi";
-      });
-    }
-
-    document.querySelectorAll(".admin-tabs .tab").forEach(function (tab) {
-      tab.addEventListener("click", function () {
-        document.querySelectorAll(".admin-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
-        tab.classList.add("active");
-        var name = tab.dataset.tab;
-        document.querySelectorAll(".tab-panel").forEach(function (p) {
-          p.hidden = p.id !== "tab-" + name;
-        });
-        if (name === "notify") { fillNotifyUsers(); loadNotifyHistory(); }
-      });
-    });
-
-    var bulkBtn = document.getElementById("btn-bulk-add");
-    if (bulkBtn) bulkBtn.addEventListener("click", bulkAdd);
-
-    var csvImportBtn = document.getElementById("btn-bulk-csv-import");
-    if (csvImportBtn) {
-      csvImportBtn.addEventListener("click", function () {
-        var f = document.getElementById("bulk-csv-file");
-        if (f && f.files && f.files[0]) importCSVFromFile(f.files[0]);
-        else showMsg(document.getElementById("bulk-csv-msg"), "CSVファイルを選択してください", true);
-      });
-    }
-
-    ["btn-save-bulk", "btn-save-urgent", "btn-save-table"].forEach(function (id) {
-      var b = document.getElementById(id);
-      if (b) b.addEventListener("click", function () {
-        saveShifts();
-        var msgId = id === "btn-save-bulk" ? "bulk-save-msg" : id === "btn-save-urgent" ? "urgent-save-msg" : "table-save-msg";
-        var msgEl = document.getElementById(msgId);
-        var orig = document.getElementById("shift-save-msg");
-        if (msgEl && orig) {
-          var iv = setInterval(function () {
-            msgEl.textContent = orig.textContent;
-            msgEl.className = orig.className;
-            if (orig.textContent && orig.textContent.indexOf("中") === -1) clearInterval(iv);
-          }, 200);
-          setTimeout(function () { clearInterval(iv); }, 5000);
-        }
-      });
-    });
-
-    var btnTableAdd = document.getElementById("btn-table-add-rows");
-    if (btnTableAdd) btnTableAdd.addEventListener("click", function () { addTableRows(5); });
+  function bindAdminEvents() {
+    var loginForm = document.getElementById("admin-login-form");
+    if (loginForm) loginForm.addEventListener("submit", doLogin);
+    var btnAdd = document.getElementById("btn-add-shift");
+    if (btnAdd) btnAdd.addEventListener("click", addShift);
+    var btnBulk = document.getElementById("btn-bulk-add");
+    if (btnBulk) btnBulk.addEventListener("click", bulkAdd);
+    var btnSave = document.getElementById("btn-save-shifts");
+    if (btnSave) btnSave.addEventListener("click", saveShifts);
+    var btnUrgent = document.getElementById("btn-post-urgent");
+    if (btnUrgent) btnUrgent.addEventListener("click", postUrgent);
+    var btnCsv = document.getElementById("btn-export-csv");
+    if (btnCsv) btnCsv.addEventListener("click", exportCSV);
     var btnTableCommit = document.getElementById("btn-table-commit");
     if (btnTableCommit) btnTableCommit.addEventListener("click", commitTableRows);
-
-    var urgentBtn = document.getElementById("btn-urgent-post");
-    if (urgentBtn) urgentBtn.addEventListener("click", postUrgent);
-
-    var csvBtn = document.getElementById("btn-export-csv");
-    if (csvBtn) csvBtn.addEventListener("click", exportCSV);
-    var pdfBtn = document.getElementById("btn-export-pdf");
-    if (pdfBtn) pdfBtn.addEventListener("click", exportPDF);
-
-    document.getElementById("admin-shift-list").addEventListener("click", function (e) {
-      var del = e.target.closest(".btn-del");
-      var edit = e.target.closest(".btn-edit");
-      if (del) {
-        if (!confirm("このシフトを削除しますか？")) return;
-        shiftsCache.splice(+del.dataset.i, 1);
-        if (editIndex === +del.dataset.i) resetForm();
-        else if (editIndex > +del.dataset.i) editIndex--;
-        renderAdminShifts();
-      } else if (edit) {
-        fillForm(+edit.dataset.i);
-      }
-    });
-
-    document.querySelectorAll("[data-preset]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var p = btn.dataset.preset.split("-");
-        var startId = btn.dataset.targetStart;
-        var endId = btn.dataset.targetEnd;
-        if (startId) document.getElementById(startId).value = p[0];
-        if (endId) document.getElementById(endId).value = p[1];
+    var btnTableAddRows = document.getElementById("btn-table-add-rows");
+    if (btnTableAddRows) btnTableAddRows.addEventListener("click", function () { addTableRows(5); });
+    var csvInput = document.getElementById("bulk-csv-file");
+    if (csvInput) csvInput.addEventListener("change", function () { importCSVFromFile(csvInput.files[0]); });
+    var list = document.getElementById("admin-shift-list");
+    if (list) {
+      list.addEventListener("click", function (e) {
+        var edit = e.target.closest(".btn-edit");
+        var del = e.target.closest(".btn-del");
+        if (edit) fillForm(parseInt(edit.getAttribute("data-i"), 10));
+        if (del) delShift(parseInt(del.getAttribute("data-i"), 10));
       });
-    });
+    }
+  }
 
-    document.querySelectorAll('input[name="urgent-scope"]').forEach(function (r) {
-      r.addEventListener("change", function () {
-        var box = document.getElementById("urgent-targets-box");
-        if (box) box.hidden = r.value !== "selected" || !r.checked;
-      });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      bindAdminEvents();
+      var session = (window.G5 && G5.getSession && G5.getSession()) || null;
+      if (session && ALLOWED.indexOf(session.role) !== -1) enterAdmin(session);
     });
-  });
+  } else {
+    bindAdminEvents();
+  }
 })();
