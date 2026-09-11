@@ -6,7 +6,7 @@
  */
 (function () {
   "use strict";
-  var CACHE_VER = "20260909c";
+  var CACHE_VER = "20260911a";
 
   function detectBase() {
     var path = location.pathname;
@@ -107,7 +107,7 @@
   else if (path.indexOf("login") !== -1) pageCss = "css/login.css";
   else if (path.indexOf("chat") !== -1) pageCss = "css/chat.css";
   else if (path.indexOf("thread") !== -1) pageCss = "css/threads.css";
-  else if (path.indexOf("notification") !== -1) pageCss = "css/portal.css";
+  else if (path.indexOf("notification") !== -1) pageCss = "css/notifications.css";
   injectCss(p(pageCss) + q);
 
   var jsQueue = [p("js/common.js") + q, p("js/api.js") + q, p("js/supabase.js") + q, p("js/email.js") + q, p("js/realtime.js") + q, p("js/notif.js") + q, p("js/auth-ui.js") + q, p("menu/menu.js") + q];

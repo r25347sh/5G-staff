@@ -1,0 +1,189 @@
+/* G⁵ Portal - notifications page */
+
+.notif-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+.page-header {
+  margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+}
+
+.page-header p {
+  opacity: 0.75;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.notif-item {
+  background: rgba(20, 14, 32, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.85rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notif-item.is-focus {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.25);
+}
+
+.notif-item h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.notif-meta {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  margin-bottom: 0.55rem;
+}
+
+.notif-body {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.notif-level-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 6px;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.notif-level-tag.lv-urgent {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.notif-level-tag.lv-high {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fcd34d;
+}
+
+.notif-level-tag.lv-normal {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+
+.notif-level-tag.lv-low {
+  background: rgba(148, 163, 184, 0.18);
+  color: #94a3b8;
+}
+
+.reply-box {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reply-box-label {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.reply-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.65rem;
+}
+
+.reply-list li {
+  font-size: 0.85rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  line-height: 1.45;
+}
+
+.reply-list li:last-child {
+  border-bottom: none;
+}
+
+.reply-list .reply-author {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.reply-list .reply-author.is-staff {
+  color: #c4b5fd;
+}
+
+.reply-list .reply-time {
+  opacity: 0.5;
+  font-size: 0.75rem;
+  margin-left: 0.35rem;
+  white-space: nowrap;
+}
+
+.reply-list .reply-empty {
+  opacity: 0.6;
+  border-bottom: none;
+}
+
+.reply-form {
+  display: flex;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.reply-form input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.reply-form input[type="text"]:focus {
+  outline: none;
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.15);
+}
+
+.reply-form button[type="submit"] {
+  flex-shrink: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.reply-form button[type="submit"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.empty-msg {
+  text-align: center;
+  opacity: 0.7;
+  padding: 2rem 1rem;
+}
+
+.empty-msg a {
+  color: #c4b5fd;
+}
+
+@media (max-width: 480px) {
+  .reply-form {
+    flex-direction: column;
+  }
+
+  .reply-form button[type="submit"] {
+    width: 100%;
+  }
+}

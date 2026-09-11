@@ -10,30 +10,18 @@
   <script src="js/load.js"></script>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/portal.css">
-  <style>
-    .notif-page { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
-    .notif-item { background: rgba(20,14,32,.9); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: .85rem; }
-    .notif-item h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
-    .notif-meta { font-size: .78rem; opacity: .65; margin-bottom: .55rem; }
-    .notif-body { font-size: .92rem; line-height: 1.55; white-space: pre-wrap; }
-    .reply-box { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid rgba(255,255,255,.08); }
-    .reply-list { list-style: none; padding: 0; margin: 0 0 .6rem; }
-    .reply-list li { font-size: .85rem; padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,.05); }
-    .reply-form { display: flex; gap: .45rem; }
-    .reply-form input { flex: 1; padding: .5rem .7rem; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.35); color: #fff; }
-    .empty-msg { text-align: center; opacity: .7; padding: 2rem; }
-    .page-header { margin-bottom: 1.25rem; }
-    .page-header h1 { margin: 0 0 .25rem; font-size: 1.4rem; }
-  </style>
+  <link rel="stylesheet" href="css/notifications.css">
 </head>
 <body>
   <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
   <main class="notif-page">
     <div class="page-header">
       <h1>📢 通知・お知らせ</h1>
-      <p style="opacity:.75;margin:0;font-size:.9rem">admin / teacher からの一方通知です。返信できます。</p>
+      <p>admin / teacher からの通知です。ログイン中のユーザーは返信できます。</p>
     </div>
-    <div id="notif-login-hint" class="empty-msg" hidden>ログインすると通知を確認できます。<a href="login.html?next=notifications.html">ログイン</a></div>
+    <div id="notif-login-hint" class="empty-msg" hidden>
+      ログインすると通知を確認できます。<a href="login.html?next=notifications.html">ログイン</a>
+    </div>
     <div id="notif-list-page"></div>
   </main>
   <footer class="site-footer">
@@ -42,103 +30,6 @@
   <script src="js/common.js"></script>
   <script src="js/supabase.js"></script>
   <script src="js/auth-ui.js"></script>
-  <script>
-  (function () {
-    function escapeHtml(s) {
-      if (s == null) return "";
-      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-    }
-
-    async function loadReplies(id, container) {
-      try {
-        var replies = await G5Supabase.fetchReplies(id);
-        var ul = container.querySelector(".reply-list");
-        if (!ul) return;
-        if (!replies.length) {
-          ul.innerHTML = '<li style="opacity:.6">返信はまだありません</li>';
-          return;
-        }
-        ul.innerHTML = replies.map(function (r) {
-          return "<li><strong>" + escapeHtml(r.author_name || r.author_id) + "</strong>: " + escapeHtml(r.body) +
-            ' <span style="opacity:.5;font-size:.75rem">' + escapeHtml((r.created_at || "").slice(0, 16).replace("T", " ")) + "</span></li>";
-        }).join("");
-      } catch (e) {
-        console.warn(e);
-      }
-    }
-
-    async function render() {
-      var listEl = document.getElementById("notif-list-page");
-      var hint = document.getElementById("notif-login-hint");
-      var sess = G5.getSession && G5.getSession();
-      if (!sess) {
-        hint.hidden = false;
-        listEl.innerHTML = "";
-        return;
-      }
-      hint.hidden = true;
-      listEl.innerHTML = '<p class="empty-msg">読み込み中…</p>';
-      try {
-        var items = await G5Supabase.fetchNotifications(sess.id);
-        if (!items.length) {
-          listEl.innerHTML = '<p class="empty-msg">通知はまだありません</p>';
-          return;
-        }
-        var focusId = new URLSearchParams(location.search).get("id");
-        listEl.innerHTML = items.map(function (n) {
-          var open = focusId && String(n.id) === String(focusId);
-          return (
-            '<article class="notif-item" data-id="' + escapeHtml(n.id) + '">' +
-            "<h3>" + escapeHtml(n.title || "お知らせ") + "</h3>" +
-            '<div class="notif-meta">from ' + escapeHtml(n.author_name || n.author_id || "staff") +
-            " · " + escapeHtml((n.created_at || "").slice(0, 16).replace("T", " ")) + "</div>" +
-            '<div class="notif-body">' + escapeHtml(n.body || "") + "</div>" +
-            '<div class="reply-box">' +
-            '<ul class="reply-list"></ul>' +
-            '<form class="reply-form" data-nid="' + escapeHtml(n.id) + '">' +
-            '<input type="text" name="body" placeholder="返信を入力…" required maxlength="500">' +
-            '<button type="submit" class="btn btn-primary" style="padding:.45rem .8rem;font-size:.85rem">送信</button>' +
-            "</form></div></article>"
-          );
-        }).join("");
-
-        listEl.querySelectorAll(".notif-item").forEach(function (el) {
-          loadReplies(el.getAttribute("data-id"), el);
-        });
-
-        listEl.querySelectorAll(".reply-form").forEach(function (form) {
-          form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-            var body = form.body.value.trim();
-            if (!body) return;
-            try {
-              await G5Supabase.postReply({
-                notification_id: form.getAttribute("data-nid"),
-                author_id: sess.id,
-                author_name: sess.name || sess.id,
-                body: body,
-                created_at: new Date().toISOString()
-              });
-              form.body.value = "";
-              loadReplies(form.getAttribute("data-nid"), form.closest(".notif-item"));
-            } catch (err) {
-              alert("返信に失敗: " + (err.message || err));
-            }
-          });
-        });
-      } catch (e) {
-        listEl.innerHTML = '<p class="empty-msg">読み込みに失敗しました（Supabase テーブル未作成の可能性）</p>';
-        console.error(e);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-      render();
-      if (window.G5Supabase && G5Supabase.subscribeNotifications) {
-        G5Supabase.subscribeNotifications(function () { render(); });
-      }
-    });
-  })();
-  </script>
+  <script src="js/notifications.js"></script>
 </body>
 </html>
