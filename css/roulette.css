@@ -295,3 +295,23 @@
 .result-modal .btn {
   min-width: 7rem;
 }
+
+
+/* g5-polish-v2 */
+.roulette-page {
+  animation: panel-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.wheel-stage {
+  filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.45));
+}
+.result-panel {
+  background: linear-gradient(160deg, rgba(20, 14, 36, 0.95), rgba(10, 7, 18, 0.95));
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.05);
+}
+.btn-spin {
+  box-shadow: 0 8px 28px rgba(255, 45, 149, 0.35);
+}
+.history-panel {
+  border-color: rgba(255, 215, 0, 0.12);
+}
