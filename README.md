@@ -32,6 +32,14 @@
 
 `js/auth-ui.js` 先頭の `LIFF_ID` に、LINE Developers で作成した LIFF App ID を設定。
 
+### 設定チェック（400 Bad Request が出るとき）
+
+1. [LINE Developers](https://developers.line.biz/) → 対象チャネル → LIFF
+2. **Endpoint URL** をサイトのルートに合わせる（例: `https://＜user＞.github.io/5G-staff/`）
+3. LIFF アプリのサイズは Full 推奨。**外部ブラウザで開く**を許可
+4. コールバックは LIFF が管理するため、独自の redirect をクエリ付きで渡さない（本リポジトリは pathname のみ使用）
+5. 初回は **ID/パスワードでログイン → アカウントメニューから LINE 連携**。以降は LINE ログイン可
+
 ## ローカル確認
 
 静的ホスト（GitHub Pages 等）で配信。PAT は `js/common.js` のフォールバックに依存（GitHub 書き込み時）。
