@@ -119,3 +119,46 @@
 .md-table td {
   color: rgba(245, 240, 255, 0.92);
 }
+
+
+.md-body ol {
+  margin: 0.5rem 0 0.85rem 1.35rem;
+  padding: 0;
+}
+
+.md-body ol li {
+  margin: 0.3rem 0;
+  color: rgba(245, 240, 255, 0.9);
+}
+
+.md-body blockquote.md-quote {
+  margin: 0.75rem 0;
+  padding: 0.65rem 0.9rem;
+  border-left: 3px solid rgba(255, 45, 149, 0.55);
+  background: rgba(255, 45, 149, 0.08);
+  border-radius: 0 10px 10px 0;
+}
+
+.md-body blockquote.md-quote p {
+  margin: 0.25rem 0;
+  color: rgba(245, 240, 255, 0.88);
+}
+
+.md-body pre.md-pre {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.md-body pre.md-pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(245, 240, 255, 0.92);
+  font-size: inherit;
+}
