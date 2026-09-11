@@ -96,5 +96,49 @@
     "note": "前半の部",
     "open": false,
     "urgent": false
+  },
+  {
+    "shift_id": "sj01028kt",
+    "user_id": "Jn9!w",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "13:30",
+    "tanto": "受付",
+    "note": "後半の部",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sdmvembac",
+    "user_id": "mK7_#",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "13:30",
+    "tanto": "ブラックジャック",
+    "note": "後半の部",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sugxai4p6",
+    "user_id": "RyuSei",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "13:30",
+    "tanto": "チンチロ",
+    "note": "後半の部（Yoshioka）",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sye12aaf1",
+    "user_id": "o+H_k",
+    "date": "2026-09-12",
+    "time_start": "13:00",
+    "time_end": "13:30",
+    "tanto": "ポーカー",
+    "note": "後半の部",
+    "open": false,
+    "urgent": false
   }
 ]
