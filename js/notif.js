@@ -599,18 +599,25 @@
   async function sendNotification(payload) {
     var session = G5.getSession();
     if (!session) throw new Error("ログインが必要です");
-    var to = payload.to == null ? "all" : payload.to;
+    /* admin は target、既存は to を使う */
+    var to =
+      payload.to != null
+        ? payload.to
+        : payload.target != null
+          ? payload.target
+          : "all";
     var item = {
       id: "n_" + Math.random().toString(36).slice(2, 14),
-      from_id: session.id,
-      from_name: session.name || session.id,
+      from_id: payload.author_id || session.id,
+      from_name: payload.author_name || session.name || session.id,
       to: to,
       title: (payload.title || "").trim() || "お知らせ",
       body: (payload.body || "").trim() || "",
       type: payload.type || "broadcast",
       level: payload.level || "normal",
       link: payload.link || "",
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      author_role: payload.author_role || session.role || null
     };
 
     var attempts = 0;
@@ -619,7 +626,11 @@
       attempts++;
       try {
         if (window.G5Supabase && G5Supabase.insertNotification) {
-          await G5Supabase.insertNotification(item);
+          var created = await G5Supabase.insertNotification(item);
+          if (created && created.id) {
+            item.id = created.id;
+            if (created.created_at) item.created_at = created.created_at;
+          }
         } else if (window.G5Api && G5Api.appendJsonArray) {
           await G5Api.appendJsonArray("src/data/notifications.json", item);
         } else {
