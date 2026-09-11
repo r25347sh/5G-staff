@@ -241,3 +241,24 @@ a:hover { color: var(--cyan); text-shadow: 0 0 10px rgba(0, 245, 255, 0.4); }
   border-left: 3px solid #ff6b35;
   padding-left: 0.5rem;
 }
+
+/* read / unread for bell panel */
+#notif-list li.notif-unread {
+  background: rgba(255, 45, 149, 0.1);
+  border-left: 3px solid var(--pink, #ff2d95);
+  font-weight: 500;
+}
+#notif-list li.notif-read {
+  opacity: 0.72;
+}
+#notif-list li.notif-unread::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pink, #ff2d95);
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  box-shadow: 0 0 6px rgba(255, 45, 149, 0.6);
+}
