@@ -187,3 +187,40 @@
     width: 100%;
   }
 }
+
+
+/* g5-polish-v2 */
+.notif-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1.15rem 3.5rem;
+  position: relative;
+  z-index: 1;
+}
+.notif-item {
+  background: rgba(16, 11, 28, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  padding: 1.15rem 1.2rem;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s, transform 0.25s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+.notif-item:hover {
+  border-color: rgba(255, 45, 149, 0.3);
+  transform: translateY(-2px);
+}
+.notif-item.level-urgent {
+  border-color: rgba(255, 45, 149, 0.45);
+  box-shadow: 0 10px 32px rgba(255, 45, 149, 0.12);
+}
+.reply-form input {
+  flex: 1;
+  min-width: 0;
+}
+.reply-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
