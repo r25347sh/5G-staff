@@ -213,3 +213,10 @@
   0%, 100% { box-shadow: 0 12px 32px rgba(255, 45, 149, 0.45); }
   50% { box-shadow: 0 12px 40px rgba(255, 45, 149, 0.7), 0 0 0 12px rgba(255, 45, 149, 0.1); }
 }
+
+
+/* g5-polish-v2 */
+.g5-menu-core,
+#g5-menu-core {
+  box-shadow: 0 8px 32px rgba(255, 45, 149, 0.25), 0 0 0 1px rgba(255, 215, 0, 0.15);
+}
