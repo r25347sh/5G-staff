@@ -10,17 +10,6 @@
     "urgent": false
   },
   {
-    "shift_id": "sjigp522w",
-    "user_id": "mL-v8",
-    "date": "2026-09-12",
-    "time_start": "10:00",
-    "time_end": "11:30",
-    "tanto": "受付",
-    "note": "",
-    "open": false,
-    "urgent": false
-  },
-  {
     "shift_id": "sob8jggtu",
     "user_id": "vM_7b",
     "date": "2026-09-12",
@@ -226,6 +215,17 @@
     "time_end": "14:00",
     "tanto": "ポーカー",
     "note": "補充要員",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "spoe5qpab",
+    "user_id": "IchiNose",
+    "date": "2026-09-12",
+    "time_start": "10:00",
+    "time_end": "11:30",
+    "tanto": "受付",
+    "note": "Kakiba",
     "open": false,
     "urgent": false
   }
