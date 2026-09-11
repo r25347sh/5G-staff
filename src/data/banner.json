@@ -1,8 +1,8 @@
 [
   {
     "enabled": true,
-    "text": "G⁵ Portalへようこそ。シフト確認はこちら。",
-    "link": "shift.html",
+    "text": "全員分のシフトを追加いたしました。メール通知は右上のアカウントアイコンをクリックして設定できます。",
+    "link": "",
     "pages": [
       "index",
       "shift",
