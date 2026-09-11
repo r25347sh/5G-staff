@@ -6,7 +6,7 @@
  */
 (function () {
   "use strict";
-  var CACHE_VER = "20260911e";
+  var CACHE_VER = "20260911f";
 
   function detectBase() {
     var path = location.pathname;
