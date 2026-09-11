@@ -574,3 +574,48 @@
 .export-preview-hint strong {
   color: var(--gold);
 }
+
+
+/* g5-polish-v2 */
+.admin-card {
+  background: rgba(16, 11, 28, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 18px;
+  padding: 1.35rem 1.4rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+.admin-card h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.85rem;
+  background: linear-gradient(100deg, #fff, #ff8fc4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.admin-tabs,
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+.admin-tabs button,
+.tab-bar button {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(245, 240, 255, 0.75);
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.admin-tabs button.active,
+.tab-bar button.active,
+.admin-tabs button[aria-selected="true"] {
+  background: rgba(255, 45, 149, 0.18);
+  border-color: rgba(255, 45, 149, 0.45);
+  color: #fff;
+}
