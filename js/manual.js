@@ -1,52 +1,168 @@
 /**
  * manual.js — manuals.json から動的一覧
  * マニュアルが空の場合は「準備中」を表示
+ * Markdown: 見出し / リスト / テーブル / HR / 強調 対応
  */
 (function () {
   "use strict";
   const BASE = (window.G5 && G5.BASE) || ".";
 
+  function escape(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function inline(str) {
+    return escape(str)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`(.+?)`/g, "<code>$1</code>");
+  }
+
+  /** テーブル行をセル配列に分解（| 区切り） */
+  function splitTableRow(line) {
+    var s = line.trim();
+    if (s.charAt(0) === "|") s = s.slice(1);
+    if (s.charAt(s.length - 1) === "|") s = s.slice(0, -1);
+    return s.split("|").map(function (c) {
+      return c.trim();
+    });
+  }
+
+  /** 区切り行か判定（| --- | :---: | など） */
+  function isTableSeparator(line) {
+    var cells = splitTableRow(line);
+    if (!cells.length) return false;
+    return cells.every(function (c) {
+      return /^:?-+:?$/.test(c.replace(/\s/g, ""));
+    });
+  }
+
   function mdToHtml(md) {
     if (!md) return "";
     const lines = md.replace(/\r\n/g, "\n").split("\n");
-    let html = "", inList = false;
-    function escape(str) {
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
-    function inline(str) {
-      return escape(str)
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.+?)\*/g, "<em>$1</em>")
-        .replace(/`(.+?)`/g, "<code>$1</code>");
-    }
-    for (let i = 0; i < lines.length; i++) {
+    let html = "";
+    let inList = false;
+    let i = 0;
+
+    while (i < lines.length) {
       const line = lines[i];
+
+      /* 水平線 --- または *** */
+      if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+        html += "<hr>";
+        i++;
+        continue;
+      }
+
+      /* テーブル検出: 現在行が | を含み、次行が区切り行 */
+      if (
+        line.indexOf("|") !== -1 &&
+        i + 1 < lines.length &&
+        isTableSeparator(lines[i + 1])
+      ) {
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+        var headerCells = splitTableRow(line);
+        var alignRow = splitTableRow(lines[i + 1]);
+        var aligns = alignRow.map(function (c) {
+          var t = c.replace(/\s/g, "");
+          if (/^:-+:$/.test(t)) return "center";
+          if (/^-+:$/.test(t)) return "right";
+          if (/^:-+$/.test(t)) return "left";
+          return "";
+        });
+        html += '<div class="md-table-wrap"><table class="md-table"><thead><tr>';
+        headerCells.forEach(function (cell, idx) {
+          var al = aligns[idx] ? ' style="text-align:' + aligns[idx] + '"' : "";
+          html += "<th" + al + ">" + inline(cell) + "</th>";
+        });
+        html += "</tr></thead><tbody>";
+        i += 2;
+        while (i < lines.length && lines[i].indexOf("|") !== -1 && lines[i].trim() !== "") {
+          if (isTableSeparator(lines[i])) {
+            i++;
+            continue;
+          }
+          var cells = splitTableRow(lines[i]);
+          html += "<tr>";
+          cells.forEach(function (cell, idx) {
+            var al = aligns[idx] ? ' style="text-align:' + aligns[idx] + '"' : "";
+            html += "<td" + al + ">" + inline(cell) + "</td>";
+          });
+          html += "</tr>";
+          i++;
+        }
+        html += "</tbody></table></div>";
+        continue;
+      }
+
+      /* 見出し */
       if (/^###\s+/.test(line)) {
-        if (inList) { html += "</ul>"; inList = false; }
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
         html += "<h3>" + escape(line.replace(/^###\s+/, "")) + "</h3>";
+        i++;
         continue;
       }
       if (/^##\s+/.test(line)) {
-        if (inList) { html += "</ul>"; inList = false; }
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
         html += "<h2>" + escape(line.replace(/^##\s+/, "")) + "</h2>";
+        i++;
         continue;
       }
       if (/^#\s+/.test(line)) {
-        if (inList) { html += "</ul>"; inList = false; }
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
         html += "<h1>" + escape(line.replace(/^#\s+/, "")) + "</h1>";
+        i++;
         continue;
       }
+
+      /* リスト */
       if (/^[-*]\s+/.test(line)) {
-        if (!inList) { html += "<ul>"; inList = true; }
+        if (!inList) {
+          html += "<ul>";
+          inList = true;
+        }
         html += "<li>" + inline(line.replace(/^[-*]\s+/, "")) + "</li>";
+        i++;
         continue;
       }
+
+      /* 空行 */
       if (line.trim() === "") {
-        if (inList) { html += "</ul>"; inList = false; }
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+        i++;
         continue;
       }
-      if (inList) { html += "</ul>"; inList = false; }
+
+      /* 通常段落 */
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
       html += "<p>" + inline(line) + "</p>";
+      i++;
     }
     if (inList) html += "</ul>";
     return html;
@@ -57,7 +173,7 @@
     if (!el) return;
     el.innerHTML = "<p class='empty-msg'>読み込み中…</p>";
     try {
-      const res = await fetch(BASE + "/src/data/manual/" + file + "?t=" + Date.now());
+      const res = await fetch(BASE + "/src/data/manual/" + encodeURIComponent(file) + "?t=" + Date.now());
       if (!res.ok) throw new Error(String(res.status));
       el.innerHTML = '<div class="md-body">' + mdToHtml(await res.text()) + "</div>";
     } catch (e) {

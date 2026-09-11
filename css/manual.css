@@ -15,4 +15,107 @@
 
 .md-body {
   animation: panel-in 0.35s var(--ease-out);
+  line-height: 1.65;
+}
+
+.md-body h1 {
+  font-size: 1.45rem;
+  margin: 0 0 1rem;
+  background: linear-gradient(105deg, #fff, #ff2d95, #00f5ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.md-body h2 {
+  font-size: 1.15rem;
+  margin: 1.75rem 0 0.75rem;
+  color: #f5f0ff;
+  border-bottom: 1px solid rgba(255, 45, 149, 0.35);
+  padding-bottom: 0.35rem;
+}
+
+.md-body h3 {
+  font-size: 1.02rem;
+  margin: 1.25rem 0 0.5rem;
+  color: #e8e0f5;
+}
+
+.md-body p {
+  margin: 0.55rem 0;
+  color: rgba(245, 240, 255, 0.92);
+}
+
+.md-body ul {
+  margin: 0.5rem 0 0.85rem 1.25rem;
+  padding: 0;
+}
+
+.md-body li {
+  margin: 0.3rem 0;
+  color: rgba(245, 240, 255, 0.9);
+}
+
+.md-body hr {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 45, 149, 0.45), rgba(0, 245, 255, 0.35), transparent);
+  margin: 1.5rem 0;
+}
+
+.md-body strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.md-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 0.1em 0.35em;
+}
+
+/* テーブル */
+.md-table-wrap {
+  overflow-x: auto;
+  margin: 0.9rem 0 1.2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 320px;
+}
+
+.md-table th,
+.md-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: top;
+}
+
+.md-table th {
+  background: rgba(255, 45, 149, 0.18);
+  color: #fff;
+  font-weight: 650;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.md-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.md-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.md-table td {
+  color: rgba(245, 240, 255, 0.92);
 }
