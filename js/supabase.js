@@ -106,6 +106,10 @@
     });
   }
 
+  /**
+   * 通知作成（DB は UUID 自動採番）
+   * payload: title, body, author_id, author_name, author_role, target, type, level, link
+   */
   async function createNotification(payload) {
     var sb = await getClient();
     var row = {
@@ -138,39 +142,119 @@
     return data;
   }
 
+  /**
+   * notif.js 互換エイリアス
+   * item: { id?, from_id, from_name, to, title, body, type, level, link, created_at }
+   * → createNotification にマップし、返却オブジェクトを item 形に揃える
+   */
+  async function insertNotification(item) {
+    var created = await createNotification({
+      title: item.title,
+      body: item.body,
+      author_id: item.from_id || item.author_id,
+      author_name: item.from_name || item.author_name,
+      author_role: item.author_role || null,
+      target: item.to != null ? item.to : (item.target != null ? item.target : "all"),
+      type: item.type || "broadcast",
+      level: item.level || "normal",
+      link: item.link || "",
+      created_at: item.created_at
+    });
+    return {
+      id: created.id,
+      from_id: created.author_id,
+      from_name: created.author_name,
+      to: created.target,
+      title: created.title,
+      body: created.body,
+      type: created.type || item.type || "broadcast",
+      level: created.level || item.level || "normal",
+      link: created.link || item.link || "",
+      created_at: created.created_at
+    };
+  }
+
   async function fetchReplies(notificationId) {
+    if (!notificationId) return [];
     var sb = await getClient();
-    var res = await sb.from("notification_replies").select("*").eq("notification_id", notificationId).order("created_at", { ascending: true });
+    var res = await sb
+      .from("notification_replies")
+      .select("*")
+      .eq("notification_id", notificationId)
+      .order("created_at", { ascending: true });
     if (res.error) throw new Error(res.error.message);
     return res.data || [];
   }
 
+  /**
+   * 返信投稿
+   * payload: { notification_id, author_id, author_name, body, created_at? }
+   */
   async function postReply(payload) {
+    if (!payload || !payload.notification_id) {
+      throw new Error("notification_id が必要です");
+    }
+    if (!payload.body || !String(payload.body).trim()) {
+      throw new Error("本文が空です");
+    }
     var sb = await getClient();
-    var res = await sb.from("notification_replies").insert(payload).select().single();
+    var row = {
+      notification_id: payload.notification_id,
+      author_id: payload.author_id,
+      author_name: payload.author_name || null,
+      body: String(payload.body).trim(),
+      created_at: payload.created_at || new Date().toISOString()
+    };
+    var res = await sb.from("notification_replies").insert(row).select().single();
     if (res.error) throw new Error(res.error.message);
     return res.data;
   }
 
   async function subscribeShifts(onChange) {
     var sb = await getClient();
-    return sb.channel("shifts-realtime").on("postgres_changes", { event: "*", schema: "public", table: "shifts" }, function (payload) {
-      if (typeof onChange === "function") onChange(payload);
-    }).subscribe();
+    return sb
+      .channel("shifts-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "shifts" }, function (payload) {
+        if (typeof onChange === "function") onChange(payload);
+      })
+      .subscribe();
   }
 
   async function subscribeNotifications(onChange) {
     var sb = await getClient();
-    return sb.channel("notif-realtime").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, function (payload) {
-      if (typeof onChange === "function") onChange(payload);
-    }).subscribe();
+    return sb
+      .channel("notif-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, function (payload) {
+        if (typeof onChange === "function") onChange(payload);
+      })
+      .subscribe();
+  }
+
+  async function subscribeReplies(onChange) {
+    var sb = await getClient();
+    return sb
+      .channel("replies-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notification_replies" },
+        function (payload) {
+          if (typeof onChange === "function") onChange(payload);
+        }
+      )
+      .subscribe();
   }
 
   async function notifyEmail(item) {
     try {
       var sb = await getClient();
       var result = await sb.functions.invoke("send-notification-email", {
-        body: { title: item.title, body: item.body, to: item.to, from_name: item.from_name, link: item.link || "" }
+        body: {
+          title: item.title,
+          body: item.body,
+          to: item.to,
+          from_name: item.from_name,
+          link: item.link || ""
+        }
       });
       if (result.error) console.warn("email fn", result.error);
     } catch (e) {}
@@ -188,10 +272,12 @@
     upsertUserProfile: upsertUserProfile,
     fetchNotifications: fetchNotifications,
     createNotification: createNotification,
+    insertNotification: insertNotification,
     fetchReplies: fetchReplies,
     postReply: postReply,
     subscribeShifts: subscribeShifts,
     subscribeNotifications: subscribeNotifications,
+    subscribeReplies: subscribeReplies,
     notifyEmail: notifyEmail
   };
 })();
