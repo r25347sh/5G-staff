@@ -52,19 +52,19 @@
       <article class="card">
         <div class="card-icon">📢</div>
         <h3>通知・お知らせ</h3>
-        <p>admin / teacher からの一方通知。返信も可能です。</p>
+        <p>admin / teacher からの通知。ログイン中は返信できます。</p>
         <a href="notifications.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
       </article>
       <article class="card">
         <div class="card-icon">◇</div>
         <h3>マニュアル</h3>
-        <p>受付・接客・機材などのマニュアル（準備中の場合あり）。</p>
+        <p>文化祭向けルール（ルーレット・BJ・ポーカー・チンチロ・チップ）。</p>
         <a href="manual.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
       </article>
       <article class="card">
         <div class="card-icon">🎡</div>
         <h3>ルーレット</h3>
-        <p>ヨーロピアン・ルーレット（本格配置）。赤・黒・0 の練習用。</p>
+        <p>ヨーロピアン（0のみ）。結果表示用。賭けは物理チップ。</p>
         <a href="roulette.html" class="btn btn-ghost" style="margin-top:1rem;font-size:0.85rem;">開く</a>
       </article>
       <article class="card">
@@ -109,7 +109,7 @@
         if (heroSess) heroSess.textContent = (sess.name || sess.id) + "（" + sess.role + "）でログイン中";
         if (heroSub) heroSub.innerHTML = "ようこそ、" + (sess.name || sess.id) + " さん。<br>シフトと通知を確認できます。";
       } else {
-        if (heroSess) heroSess.textContent = "未ログイン — 右上のログインから入れます";
+        if (heroSess) heroSess.textContent = "未ログイン — メニューまたはログインページから入れます";
         if (heroSub) heroSub.innerHTML = "5年G組スタッフ専用ポータル。<br>シフト確認・管理者からの通知をここから。";
       }
     }
