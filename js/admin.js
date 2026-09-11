@@ -761,6 +761,15 @@
     }
   }
 
+  function escapeHtmlAdmin(s) {
+    if (s == null) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   async function loadNotifyHistory() {
     var box = document.getElementById("notify-history");
     if (!box || !window.G5Supabase || !G5Supabase.fetchNotifications) return;
@@ -770,25 +779,98 @@
         box.innerHTML = '<p class="empty-msg">通知なし</p>';
         return;
       }
+      var sess = (window.G5 && G5.getSession && G5.getSession()) || {};
       box.innerHTML = items
         .slice(0, 12)
         .map(function (n) {
           return (
-            '<div class="admin-card" style="padding:0.75rem;margin-bottom:0.5rem;">' +
+            '<div class="admin-card notif-hist-item" data-nid="' +
+            escapeHtmlAdmin(n.id) +
+            '" style="padding:0.75rem;margin-bottom:0.5rem;">' +
             "<strong>" +
-            (n.title || "") +
+            escapeHtmlAdmin(n.title || "") +
             "</strong>" +
             '<p style="margin:0.35rem 0 0;font-size:0.9rem;opacity:0.85;">' +
-            (n.body || "").slice(0, 120) +
+            escapeHtmlAdmin((n.body || "").slice(0, 160)) +
             "</p>" +
             '<p style="margin:0.25rem 0 0;font-size:0.75rem;opacity:0.6;">' +
-            (n.author_name || n.author_id || "") +
+            escapeHtmlAdmin(n.author_name || n.author_id || "") +
             " · " +
-            (n.created_at || "") +
-            "</p></div>"
+            escapeHtmlAdmin(n.created_at || "") +
+            "</p>" +
+            '<div class="hist-replies" style="margin-top:0.55rem;padding-top:0.45rem;border-top:1px solid rgba(255,255,255,0.08);">' +
+            '<p style="font-size:0.75rem;opacity:0.65;margin:0 0 0.35rem;">💬 返信</p>' +
+            '<ul class="hist-reply-list" style="list-style:none;padding:0;margin:0 0 0.45rem;font-size:0.82rem;"></ul>' +
+            '<form class="hist-reply-form" data-nid="' +
+            escapeHtmlAdmin(n.id) +
+            '" style="display:flex;gap:0.4rem;">' +
+            '<input type="text" name="body" placeholder="スタッフとして返信…" maxlength="500" required ' +
+            'style="flex:1;padding:0.4rem 0.55rem;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:rgba(0,0,0,0.35);color:#fff;font-size:0.85rem;">' +
+            '<button type="submit" class="btn btn-primary btn-sm" style="padding:0.35rem 0.7rem;font-size:0.8rem;">送信</button>' +
+            "</form></div></div>"
           );
         })
         .join("");
+
+      /* 返信読込 */
+      box.querySelectorAll(".notif-hist-item").forEach(function (el) {
+        var nid = el.getAttribute("data-nid");
+        var ul = el.querySelector(".hist-reply-list");
+        if (!nid || !ul || !G5Supabase.fetchReplies) return;
+        G5Supabase.fetchReplies(nid)
+          .then(function (replies) {
+            if (!replies || !replies.length) {
+              ul.innerHTML =
+                '<li style="opacity:0.55;padding:0.2rem 0;">まだ返信なし</li>';
+              return;
+            }
+            ul.innerHTML = replies
+              .map(function (r) {
+                return (
+                  '<li style="padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">' +
+                  "<strong>" +
+                  escapeHtmlAdmin(r.author_name || r.author_id) +
+                  "</strong>: " +
+                  escapeHtmlAdmin(r.body) +
+                  ' <span style="opacity:0.5;font-size:0.72rem;">' +
+                  escapeHtmlAdmin((r.created_at || "").slice(0, 16).replace("T", " ")) +
+                  "</span></li>"
+                );
+              })
+              .join("");
+          })
+          .catch(function () {
+            ul.innerHTML =
+              '<li style="opacity:0.55;">返信の読込失敗</li>';
+          });
+      });
+
+      /* スタッフ返信 */
+      box.querySelectorAll(".hist-reply-form").forEach(function (form) {
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var body = (form.body && form.body.value ? form.body.value : "").trim();
+          if (!body) return;
+          var nid = form.getAttribute("data-nid");
+          var btn = form.querySelector('button[type="submit"]');
+          if (btn) btn.disabled = true;
+          try {
+            await G5Supabase.postReply({
+              notification_id: nid,
+              author_id: sess.id || "admin",
+              author_name: sess.name || "管理者",
+              body: body,
+              created_at: new Date().toISOString()
+            });
+            form.body.value = "";
+            loadNotifyHistory();
+          } catch (err) {
+            alert("返信失敗: " + (err.message || err));
+          } finally {
+            if (btn) btn.disabled = false;
+          }
+        });
+      });
     } catch (e) {
       box.innerHTML = '<p class="empty-msg">履歴の読み込みに失敗</p>';
     }
