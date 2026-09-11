@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0508">
+  <title>ポーカー | G⁵ Portal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <script src="js/load.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/poker.css">
+</head>
+<body>
+  <div class="g5-ambient" id="ambient" aria-hidden="true"></div>
+
+  <main class="poker-page">
+    <header class="poker-header">
+      <div class="tag">Casino Night · G⁵ Festival</div>
+      <h1>POKER</h1>
+      <p>文化祭・簡易版（フロップ・ショーダウン）— 練習用</p>
+    </header>
+
+    <div class="balance-bar">
+      <div class="stat-pill">
+        <div class="label">YOUR CHIPS</div>
+        <div class="value gold" id="pk-balance">500</div>
+      </div>
+      <div class="stat-pill">
+        <div class="label">POT</div>
+        <div class="value" id="pk-pot">0</div>
+      </div>
+      <div class="stat-pill">
+        <div class="label">ANTE</div>
+        <div class="value">10</div>
+      </div>
+    </div>
+
+    <section class="poker-table" aria-label="ポーカーテーブル">
+      <div class="table-label">Community · Flop only</div>
+      <div class="hand-caption">場（フロップ3枚）</div>
+      <div class="community-row" id="pk-board"></div>
+
+      <div class="pot-bar">
+        <span class="pot-chip">♠ Black &amp; Red Table ♥</span>
+      </div>
+
+      <div class="hand-caption">CPU</div>
+      <div class="hand-row" id="pk-cpu-hand"></div>
+
+      <div class="hand-caption">あなた</div>
+      <div class="hand-row" id="pk-player-hand"></div>
+      <div class="hand-result" id="pk-result"></div>
+    </section>
+
+    <div class="msg-board" id="pk-msg" role="status"></div>
+
+    <div class="actions">
+      <button type="button" class="btn-poker btn-deal" id="btn-pk-deal">ディール</button>
+      <button type="button" class="btn-poker btn-fold" id="btn-pk-fold" disabled>フォールド</button>
+      <button type="button" class="btn-poker btn-call" id="btn-pk-call" disabled>コール</button>
+      <button type="button" class="btn-poker btn-raise" id="btn-pk-raise" disabled>レイズ ×2</button>
+    </div>
+
+    <section class="rules-compact">
+      <h2>この卓のルール（超短縮）</h2>
+      <ol>
+        <li>全員アンティ → 手札2枚＋場に3枚</li>
+        <li>アクションは1回だけ（降りる / 乗る / 上げる※1人まで）</li>
+        <li>5枚で役を比べて勝ち。再レイズ・ターン・リバーなし</li>
+        <li>詳しくは <a href="manual.html">マニュアル</a> の「ポーカー（文化祭・簡易版）」</li>
+      </ol>
+    </section>
+
+    <p style="text-align:center;margin-top:1.5rem;">
+      <a href="index.html" style="color:rgba(248,233,224,0.65);font-size:0.9rem;">ホームに戻る</a>
+      ·
+      <a href="roulette.html" style="color:rgba(248,233,224,0.65);font-size:0.9rem;">ルーレット</a>
+    </p>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script src="js/poker.js"></script>
+</body>
+</html>
