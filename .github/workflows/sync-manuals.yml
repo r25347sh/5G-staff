@@ -1,0 +1,89 @@
+name: Sync manuals.json from src/data/manual
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/data/manual/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-manuals
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Rebuild manuals.json
+        id: build
+        run: |
+          set -euo pipefail
+          DIR="src/data/manual"
+          OUT="src/data/manuals.json"
+          mkdir -p "$DIR"
+
+          python3 << 'PY'
+          import json, os, re
+          from pathlib import Path
+
+          dir_path = Path("src/data/manual")
+          out_path = Path("src/data/manuals.json")
+
+          def title_from_file(name: str, text: str) -> str:
+              # 先頭の # 見出しを優先
+              for line in text.splitlines():
+                  m = re.match(r"^#\s+(.+)$", line.strip())
+                  if m:
+                      t = m.group(1).strip()
+                      # 「の基本ルール」などを軽く整える
+                      t = re.sub(r"の基本ルール$", "", t).strip() or t
+                      return t
+              # ファイル名から
+              base = re.sub(r"\.（テキスト）\.md$", "", name)
+              base = re.sub(r"\.md$", "", base)
+              base = base.replace("・", " ")
+              return base or name
+
+          entries = []
+          if dir_path.exists():
+              files = sorted(
+                  [p for p in dir_path.iterdir() if p.is_file() and p.suffix.lower() == ".md"],
+                  key=lambda p: p.name
+              )
+              for p in files:
+                  try:
+                      text = p.read_text(encoding="utf-8")
+                  except Exception:
+                      text = ""
+                  entries.append({
+                      "title": title_from_file(p.name, text),
+                      "file": p.name
+                  })
+
+          new_json = json.dumps(entries, ensure_ascii=False, indent=2) + "\n"
+          old = out_path.read_text(encoding="utf-8") if out_path.exists() else ""
+          changed = old.strip() != new_json.strip()
+          out_path.write_text(new_json, encoding="utf-8")
+          print(f"entries={len(entries)} changed={changed}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"changed={'true' if changed else 'false'}\n")
+              f.write(f"count={len(entries)}\n")
+          PY
+
+      - name: Commit manuals.json if changed
+        if: steps.build.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/manuals.json
+          git commit -m "chore: sync manuals.json from src/data/manual (${{ steps.build.outputs.count }} files)"
+          git push
