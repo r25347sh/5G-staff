@@ -140,5 +140,60 @@
     "note": "後半の部",
     "open": false,
     "urgent": false
+  },
+  {
+    "shift_id": "slh92pqb7",
+    "user_id": "xR=4f",
+    "date": "2026-09-12",
+    "time_start": "14:00",
+    "time_end": "15:00",
+    "tanto": "受付",
+    "note": "別活動後",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "s96v17bzq",
+    "user_id": "bM4_k",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "15:00",
+    "tanto": "ブラックジャック",
+    "note": "",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "szqpndfis",
+    "user_id": "vW2+r",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "15:00",
+    "tanto": "チンチロ",
+    "note": "",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "svfyibr1u",
+    "user_id": "r25347sh",
+    "date": "2026-09-12",
+    "time_start": "14:00",
+    "time_end": "15:00",
+    "tanto": "ポーカー",
+    "note": "補充要員",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sn2hlb0uh",
+    "user_id": "r25347sh",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "14:00",
+    "tanto": "受付",
+    "note": "補充要員",
+    "open": false,
+    "urgent": false
   }
 ]
