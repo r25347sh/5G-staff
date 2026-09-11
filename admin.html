@@ -58,6 +58,7 @@
         <button type="button" class="tab" data-tab="bulk">一括登録</button>
         <button type="button" class="tab" data-tab="table">テーブル追加</button>
         <button type="button" class="tab" data-tab="urgent">急募</button>
+        <button type="button" class="tab" data-tab="tools">ツール</button>
         <button type="button" class="tab" data-tab="export">出力</button>
         <button type="button" class="tab" data-tab="banner">バナー</button>
         <button type="button" class="tab" data-tab="notify">通知送信</button>
@@ -218,11 +219,21 @@
         </div>
       </div>
 
+      <div id="tab-tools" class="tab-panel" hidden>
+        <p class="hint-text">管理者専用ツール。シフト検索・空き確認・重複検査・集計など。</p>
+        <div id="admin-tools-root"></div>
+      </div>
+
       <div id="tab-export" class="tab-panel" hidden>
-        <p class="hint-text">9/12 シフトデータを CSV / PDF で出力。</p>
+        <p class="hint-text">現在のシフトデータを読み取り、見やすいシフト表として出力します。PDFは専用レイアウトのプレビューから「PDFに保存」してください。</p>
         <div class="export-actions">
+          <button type="button" class="btn btn-primary" id="btn-export-sheet">📄 シフト表プレビュー（PDF）</button>
+          <button type="button" class="btn btn-ghost" id="btn-export-sheet-html">HTML ダウンロード</button>
           <button type="button" class="btn btn-primary" id="btn-export-csv">CSV ダウンロード</button>
-          <button type="button" class="btn btn-primary" id="btn-export-pdf">PDF（印刷）</button>
+        </div>
+        <p id="export-msg" class="msg" role="status"></p>
+        <div class="export-preview-hint hint-text" style="margin-top:1rem">
+          シフト表には「役割×時間帯マトリクス」「一覧表」「担当者別」が含まれます。ブラウザの印刷ダイアログで <strong>PDFに保存</strong> を選ぶとファイル化できます（横向き推奨）。
         </div>
       </div>
 
@@ -293,6 +304,8 @@
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
   <script src="src/js/shift.js"></script>
   <script src="js/qr-login.js"></script>
+  <script src="js/admin-export.js"></script>
+  <script src="js/admin-tools.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>
