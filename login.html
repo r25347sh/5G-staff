@@ -132,8 +132,8 @@
     async function doLineLogin() {
       var msg = document.getElementById("login-msg");
       try {
-        if (!window.G5AuthUI || !G5AuthUI.tryAutoLoginWithLine) {
-          msg.textContent = "LINEログイン機能の読み込みに失敗しました";
+        if (!window.G5AuthUI || !G5AuthUI.ensureLiff) {
+          msg.textContent = "LINEログイン機能の読み込みに失敗しました。ページを再読み込みしてください。";
           msg.classList.add("error");
           return;
         }
@@ -142,19 +142,38 @@
         var ok = await G5AuthUI.tryAutoLoginWithLine();
         if (ok) {
           msg.textContent = "LINE連携アカウントでログインしました。移動します…";
-          setTimeout(function () { redirectAfterLogin(G5.getSession()); }, 400);
+          var sess = G5.getSession();
+          if (G5AuthUI.consumeLineNext) {
+            var n = G5AuthUI.consumeLineNext();
+            if (n) {
+              setTimeout(function () {
+                location.href = n.indexOf("http") === 0 ? n : ((G5.BASE && G5.BASE !== "." ? G5.BASE + "/" : "") + n.replace(/^\//, ""));
+              }, 400);
+              return;
+            }
+          }
+          setTimeout(function () { redirectAfterLogin(sess); }, 400);
           return;
         }
-        /* 未連携 or 未ログイン → LIFF ログインへ誘導 */
+        /* 未ログイン → 正規 redirectUri で LINE 認証へ（クエリ付きURLは 400 の原因） */
         await G5AuthUI.ensureLiff();
         if (!liff.isLoggedIn()) {
-          liff.login({ redirectUri: location.href.split("#")[0] });
+          if (G5AuthUI.startLineLogin) {
+            await G5AuthUI.startLineLogin({ preferLoginPage: true });
+          } else {
+            liff.login({ redirectUri: G5AuthUI.getLiffRedirectUri(true) });
+          }
           return;
         }
-        msg.textContent = "このLINEアカウントはまだポータルに連携されていません。先にID/パスワードでログインし、アカウントメニューから「LINEアカウント連携」を行ってください。";
+        msg.textContent =
+          "このLINEアカウントはまだポータルに連携されていません。先にID/パスワードでログインし、右上メニューから「LINEアカウント連携」を行ってください。";
         msg.classList.add("error");
       } catch (e) {
-        msg.textContent = "LINEログイン失敗: " + (e.message || e);
+        var detail = e && e.message ? e.message : String(e);
+        msg.textContent =
+          "LINEログイン失敗: " +
+          detail +
+          "（400 のときは LINE Developers の LIFF Endpoint URL をサイトの URL に合わせてください）";
         msg.classList.add("error");
       }
     }
