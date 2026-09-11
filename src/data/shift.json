@@ -6,8 +6,34 @@
     "time_start": "08:30",
     "time_end": "15:00",
     "tanto": "総務",
+    "note": null,
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
+  },
+  {
+    "shift_id": "sjigp522w",
+    "user_id": "mL-v8",
+    "date": "2026-09-12",
+    "time_start": "10:00",
+    "time_end": "11:30",
+    "tanto": "受付",
+    "note": "",
+    "open": false,
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sob8jggtu",
@@ -18,7 +44,14 @@
     "tanto": "ブラックジャック",
     "note": "",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sryic9eda",
@@ -29,7 +62,14 @@
     "tanto": "チンチロ",
     "note": "",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sm8wk52t7",
@@ -40,7 +80,14 @@
     "tanto": "ポーカー",
     "note": "",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "shoyzduey",
@@ -51,7 +98,14 @@
     "tanto": "受付",
     "note": "前半の部",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "socaxt752",
@@ -62,7 +116,14 @@
     "tanto": "ブラックジャック",
     "note": "前半の部",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sn7e1yq77",
@@ -73,7 +134,14 @@
     "tanto": "チンチロ",
     "note": "前半の部（Yoshioka）",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sfmgzx82t",
@@ -84,7 +152,14 @@
     "tanto": "ポーカー",
     "note": "前半の部",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sj01028kt",
@@ -95,7 +170,14 @@
     "tanto": "受付",
     "note": "後半の部",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sdmvembac",
@@ -106,7 +188,14 @@
     "tanto": "ブラックジャック",
     "note": "後半の部",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sugxai4p6",
@@ -117,7 +206,14 @@
     "tanto": "チンチロ",
     "note": "後半の部（Yoshioka）",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sye12aaf1",
@@ -128,18 +224,14 @@
     "tanto": "ポーカー",
     "note": "後半の部",
     "open": false,
-    "urgent": false
-  },
-  {
-    "shift_id": "slh92pqb7",
-    "user_id": "xR=4f",
-    "date": "2026-09-12",
-    "time_start": "14:00",
-    "time_end": "15:00",
-    "tanto": "受付",
-    "note": "別活動後",
-    "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "s96v17bzq",
@@ -150,7 +242,14 @@
     "tanto": "ブラックジャック",
     "note": "",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "szqpndfis",
@@ -161,18 +260,14 @@
     "tanto": "チンチロ",
     "note": "",
     "open": false,
-    "urgent": false
-  },
-  {
-    "shift_id": "svfyibr1u",
-    "user_id": "r25347sh",
-    "date": "2026-09-12",
-    "time_start": "14:00",
-    "time_end": "15:00",
-    "tanto": "ポーカー",
-    "note": "補充要員",
-    "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sn2hlb0uh",
@@ -183,7 +278,14 @@
     "tanto": "受付",
     "note": "補充要員",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "smzvwjrav",
@@ -194,7 +296,14 @@
     "tanto": "ポーカー",
     "note": "補充要員",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "sk4oi7dif",
@@ -205,7 +314,14 @@
     "tanto": "ポーカー",
     "note": "補充要員",
     "open": false,
-    "urgent": false
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
   },
   {
     "shift_id": "swpu3g6az",
@@ -216,16 +332,114 @@
     "tanto": "ポーカー",
     "note": "補充要員",
     "open": false,
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
+  },
+  {
+    "shift_id": "slh92pqb7",
+    "user_id": "xR=4f",
+    "date": "2026-09-12",
+    "time_start": "14:00",
+    "time_end": "15:00",
+    "tanto": "受付",
+    "note": "別活動後",
+    "open": false,
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
+  },
+  {
+    "shift_id": "svfyibr1u",
+    "user_id": "r25347sh",
+    "date": "2026-09-12",
+    "time_start": "14:00",
+    "time_end": "15:00",
+    "tanto": "ポーカー",
+    "note": "補充要員",
+    "open": false,
+    "urgent": false,
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": [],
+    "filled_at": null,
+    "created_at": "2026-09-11T05:12:02.152057+00:00",
+    "updated_at": "2026-09-11T05:12:02.152057+00:00"
+  },
+  {
+    "shift_id": "skx5erxno",
+    "user_id": "bN4=t",
+    "date": "2026-09-12",
+    "time_start": "08:30",
+    "time_end": "10:00",
+    "tanto": "受付",
+    "note": "",
+    "open": false,
     "urgent": false
   },
   {
-    "shift_id": "spoe5qpab",
-    "user_id": "IchiNose",
+    "shift_id": "s8huv7vw6",
+    "user_id": "mW4_v",
     "date": "2026-09-12",
-    "time_start": "10:00",
-    "time_end": "11:30",
+    "time_start": "08:30",
+    "time_end": "10:00",
     "tanto": "受付",
-    "note": "Kakiba",
+    "note": "",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sa6iaol4n",
+    "user_id": "W=fM6",
+    "date": "2026-09-12",
+    "time_start": "08:30",
+    "time_end": "10:00",
+    "tanto": "ブラックジャック",
+    "note": "",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sqchs20dc",
+    "user_id": "kX9_#",
+    "date": "2026-09-12",
+    "time_start": "08:30",
+    "time_end": "10:00",
+    "tanto": "ポーカー",
+    "note": "",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "s8tkdv9hx",
+    "user_id": "bZ3=x",
+    "date": "2026-09-12",
+    "time_start": "08:30",
+    "time_end": "10:00",
+    "tanto": "ポーカー",
+    "note": "",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sfmhpcw4o",
+    "user_id": "kZ+9p",
+    "date": "2026-09-12",
+    "time_start": "08:30",
+    "time_end": "10:00",
+    "tanto": "ルーレット",
+    "note": "",
     "open": false,
     "urgent": false
   }
