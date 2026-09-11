@@ -195,5 +195,38 @@
     "note": "補充要員",
     "open": false,
     "urgent": false
+  },
+  {
+    "shift_id": "smzvwjrav",
+    "user_id": "kX9_#",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "14:00",
+    "tanto": "ポーカー",
+    "note": "補充要員",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "sk4oi7dif",
+    "user_id": "kZ+9p",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "14:00",
+    "tanto": "ポーカー",
+    "note": "補充要員",
+    "open": false,
+    "urgent": false
+  },
+  {
+    "shift_id": "swpu3g6az",
+    "user_id": "mW4_v",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "14:00",
+    "tanto": "ポーカー",
+    "note": "補充要員",
+    "open": false,
+    "urgent": false
   }
 ]
