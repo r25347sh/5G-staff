@@ -1,11 +1,10 @@
 /**
- * manual.js — manuals.json から動的一覧
- * マニュアルが空の場合は「準備中」を表示
- * Markdown: 見出し / リスト / テーブル / HR / 強調 対応
+ * manual.js — manuals.json から一覧、Markdown を HTML に変換
+ * 対応: 見出し / 箇条書き / 番号付き / 表 / HR / 引用 / コード / 強調
  */
 (function () {
   "use strict";
-  const BASE = (window.G5 && G5.BASE) || ".";
+  var BASE = (window.G5 && G5.BASE) || ".";
 
   function escape(str) {
     return String(str)
@@ -16,13 +15,21 @@
   }
 
   function inline(str) {
-    return escape(str)
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g, "<em>$1</em>")
-      .replace(/`(.+?)`/g, "<code>$1</code>");
+    var s = escape(str);
+    /* インラインコードを先に保護 */
+    var codes = [];
+    s = s.replace(/`([^`]+)`/g, function (_, c) {
+      codes.push(c);
+      return "\u0000C" + (codes.length - 1) + "\u0000";
+    });
+    s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\*(.+?)\*/g, "<em>$1</em>");
+    s = s.replace(/\u0000C(\d+)\u0000/g, function (_, i) {
+      return "<code>" + codes[+i] + "</code>";
+    });
+    return s;
   }
 
-  /** テーブル行をセル配列に分解（| 区切り） */
   function splitTableRow(line) {
     var s = line.trim();
     if (s.charAt(0) === "|") s = s.slice(1);
@@ -32,46 +39,70 @@
     });
   }
 
-  /** 区切り行か判定（| --- | :---: | など） */
   function isTableSeparator(line) {
+    if (line.indexOf("|") === -1 && !/^\s*:?-+:?\s*$/.test(line)) {
+      /* | なしの ---|--- は稀 */
+    }
     var cells = splitTableRow(line);
     if (!cells.length) return false;
     return cells.every(function (c) {
-      return /^:?-+:?$/.test(c.replace(/\s/g, ""));
+      var t = c.replace(/\s/g, "");
+      return t === "" || /^:?-+:?$/.test(t);
     });
+  }
+
+  function closeLists(state) {
+    var out = "";
+    if (state.ul) {
+      out += "</ul>";
+      state.ul = false;
+    }
+    if (state.ol) {
+      out += "</ol>";
+      state.ol = false;
+    }
+    return out;
   }
 
   function mdToHtml(md) {
     if (!md) return "";
-    const lines = md.replace(/\r\n/g, "\n").split("\n");
-    let html = "";
-    let inList = false;
-    let i = 0;
+    var lines = String(md).replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+    var html = "";
+    var state = { ul: false, ol: false };
+    var i = 0;
 
     while (i < lines.length) {
-      const line = lines[i];
+      var line = lines[i];
 
-      /* 水平線 --- または *** */
-      if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
+      /* フェンスコード ``` */
+      if (/^\s*```/.test(line)) {
+        html += closeLists(state);
+        i++;
+        var buf = [];
+        while (i < lines.length && !/^\s*```/.test(lines[i])) {
+          buf.push(lines[i]);
+          i++;
         }
+        if (i < lines.length) i++;
+        html += "<pre class=\"md-pre\"><code>" + escape(buf.join("\n")) + "</code></pre>";
+        continue;
+      }
+
+      /* 水平線 */
+      if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+        html += closeLists(state);
         html += "<hr>";
         i++;
         continue;
       }
 
-      /* テーブル検出: 現在行が | を含み、次行が区切り行 */
+      /* テーブル */
       if (
         line.indexOf("|") !== -1 &&
         i + 1 < lines.length &&
         isTableSeparator(lines[i + 1])
       ) {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
+        html += closeLists(state);
         var headerCells = splitTableRow(line);
         var alignRow = splitTableRow(lines[i + 1]);
         var aligns = alignRow.map(function (c) {
@@ -95,10 +126,11 @@
           }
           var cells = splitTableRow(lines[i]);
           html += "<tr>";
-          cells.forEach(function (cell, idx) {
-            var al = aligns[idx] ? ' style="text-align:' + aligns[idx] + '"' : "";
-            html += "<td" + al + ">" + inline(cell) + "</td>";
-          });
+          var colCount = Math.max(headerCells.length, cells.length);
+          for (var ci = 0; ci < colCount; ci++) {
+            var al2 = aligns[ci] ? ' style="text-align:' + aligns[ci] + '"' : "";
+            html += "<td" + al2 + ">" + inline(cells[ci] != null ? cells[ci] : "") + "</td>";
+          }
           html += "</tr>";
           i++;
         }
@@ -106,88 +138,106 @@
         continue;
       }
 
-      /* 見出し */
-      if (/^###\s+/.test(line)) {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
-        html += "<h3>" + escape(line.replace(/^###\s+/, "")) + "</h3>";
-        i++;
-        continue;
-      }
-      if (/^##\s+/.test(line)) {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
-        html += "<h2>" + escape(line.replace(/^##\s+/, "")) + "</h2>";
-        i++;
-        continue;
-      }
-      if (/^#\s+/.test(line)) {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
-        html += "<h1>" + escape(line.replace(/^#\s+/, "")) + "</h1>";
+      /* 見出し（インライン装飾あり） */
+      var hm = line.match(/^(#{1,3})\s+(.*)$/);
+      if (hm) {
+        html += closeLists(state);
+        var level = hm[1].length;
+        html += "<h" + level + ">" + inline(hm[2]) + "</h" + level + ">";
         i++;
         continue;
       }
 
-      /* リスト */
-      if (/^[-*]\s+/.test(line)) {
-        if (!inList) {
-          html += "<ul>";
-          inList = true;
+      /* 引用 */
+      if (/^\s*>\s?/.test(line)) {
+        html += closeLists(state);
+        var q = [];
+        while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+          q.push(lines[i].replace(/^\s*>\s?/, ""));
+          i++;
         }
-        html += "<li>" + inline(line.replace(/^[-*]\s+/, "")) + "</li>";
+        html +=
+          "<blockquote class=\"md-quote\">" +
+          q
+            .map(function (row) {
+              return "<p>" + inline(row) + "</p>";
+            })
+            .join("") +
+          "</blockquote>";
+        continue;
+      }
+
+      /* 番号付きリスト */
+      if (/^\s*\d+\.\s+/.test(line)) {
+        if (state.ul) {
+          html += "</ul>";
+          state.ul = false;
+        }
+        if (!state.ol) {
+          html += "<ol>";
+          state.ol = true;
+        }
+        html += "<li>" + inline(line.replace(/^\s*\d+\.\s+/, "")) + "</li>";
+        i++;
+        continue;
+      }
+
+      /* 箇条書き */
+      if (/^\s*[-*+]\s+/.test(line)) {
+        if (state.ol) {
+          html += "</ol>";
+          state.ol = false;
+        }
+        if (!state.ul) {
+          html += "<ul>";
+          state.ul = true;
+        }
+        html += "<li>" + inline(line.replace(/^\s*[-*+]\s+/, "")) + "</li>";
         i++;
         continue;
       }
 
       /* 空行 */
       if (line.trim() === "") {
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
+        html += closeLists(state);
         i++;
         continue;
       }
 
-      /* 通常段落 */
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
+      /* 段落 */
+      html += closeLists(state);
       html += "<p>" + inline(line) + "</p>";
       i++;
     }
-    if (inList) html += "</ul>";
+    html += closeLists(state);
     return html;
   }
 
   async function show(file) {
-    const el = document.getElementById("manual-content");
+    var el = document.getElementById("manual-content");
     if (!el) return;
     el.innerHTML = "<p class='empty-msg'>読み込み中…</p>";
     try {
-      const res = await fetch(BASE + "/src/data/manual/" + encodeURIComponent(file) + "?t=" + Date.now());
+      var res = await fetch(
+        BASE + "/src/data/manual/" + encodeURIComponent(file) + "?t=" + Date.now()
+      );
       if (!res.ok) throw new Error(String(res.status));
-      el.innerHTML = '<div class="md-body">' + mdToHtml(await res.text()) + "</div>";
+      var text = await res.text();
+      el.innerHTML = '<div class="md-body">' + mdToHtml(text) + "</div>";
+      el.scrollTop = 0;
     } catch (e) {
       el.innerHTML = '<p class="empty-msg">読み込みに失敗しました</p>';
+      console.warn("[manual]", e);
     }
   }
 
   async function init() {
-    const ul = document.getElementById("manual-list");
-    const content = document.getElementById("manual-content");
+    var ul = document.getElementById("manual-list");
+    var content = document.getElementById("manual-content");
     if (!ul) return;
-    let manuals = [];
+    var manuals = [];
     try {
-      const res = await fetch(BASE + "/src/data/manuals.json?t=" + Date.now());
+      var res = await fetch(BASE + "/src/data/manuals.json?t=" + Date.now());
       if (res.ok) manuals = await res.json();
       if (!Array.isArray(manuals)) manuals = [];
     } catch (e) {
@@ -210,23 +260,30 @@
       .map(function (m) {
         return (
           '<li><button type="button" data-file="' +
-          (m.file || "") +
+          escape(m.file || "") +
           '">' +
-          (m.title || m.file || "無題") +
+          escape(m.title || m.file || "無題") +
           "</button></li>"
         );
       })
       .join("");
 
     ul.addEventListener("click", function (e) {
-      const btn = e.target.closest("button[data-file]");
+      var btn = e.target.closest("button[data-file]");
       if (!btn) return;
       ul.querySelectorAll("button").forEach(function (b) {
         b.classList.remove("active");
       });
       btn.classList.add("active");
-      show(btn.dataset.file);
+      show(btn.getAttribute("data-file"));
     });
+
+    /* 先頭を自動表示 */
+    var first = ul.querySelector("button[data-file]");
+    if (first) {
+      first.classList.add("active");
+      show(first.getAttribute("data-file"));
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
