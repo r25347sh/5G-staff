@@ -87,6 +87,11 @@
     document.querySelectorAll(".tab-panel").forEach(function (panel) {
       panel.hidden = panel.id !== "tab-" + name;
     });
+    if (name === "tools") refreshAdminTools();
+    if (name === "export") {
+      var em = document.getElementById("export-msg");
+      if (em) em.textContent = "現在 " + shiftsCache.length + " 件のシフトを出力できます。";
+    }
   }
 
   function fillNotifyUsers() {
@@ -180,6 +185,7 @@
     renderAdminShifts();
     initTableAdd(12);
     loadNotifyHistory();
+    refreshAdminTools();
     try {
       var b = await (await fetch(BASE + "/src/data/banner.json?t=" + Date.now())).json();
       var banner = Array.isArray(b) ? b[0] : b;
@@ -197,6 +203,11 @@
   }
 
   function renderAdminShifts() {
+    /* ツールタブが開いていれば集計を追随 */
+    try {
+      var toolsPanel = document.getElementById("tab-tools");
+      if (toolsPanel && !toolsPanel.hidden) refreshAdminTools();
+    } catch (e) {}
     var map = Object.fromEntries(
       usersCache.map(function (u) {
         return [u.id, u];
@@ -653,8 +664,59 @@
     a.click();
   }
 
+  function exportShiftSheetPreview() {
+    var msg = document.getElementById("export-msg");
+    if (!window.G5AdminExport || !G5AdminExport.exportShiftSheet) {
+      showMsg(msg, "エクスポートモジュール未読込", true);
+      return;
+    }
+    showMsg(msg, "シフト表を生成しています…");
+    try {
+      G5AdminExport.exportShiftSheet({
+        shifts: shiftsCache,
+        users: usersCache,
+        tantoOptions: TANTO_OPTIONS,
+        date: EVENT_DATE,
+        mode: "preview"
+      });
+      showMsg(msg, "プレビューを開きました。印刷ダイアログから PDF に保存できます。");
+    } catch (e) {
+      showMsg(msg, "失敗: " + (e.message || e), true);
+    }
+  }
+
+  function exportShiftSheetHtml() {
+    var msg = document.getElementById("export-msg");
+    if (!window.G5AdminExport || !G5AdminExport.exportShiftSheet) {
+      showMsg(msg, "エクスポートモジュール未読込", true);
+      return;
+    }
+    try {
+      G5AdminExport.exportShiftSheet({
+        shifts: shiftsCache,
+        users: usersCache,
+        tantoOptions: TANTO_OPTIONS,
+        date: EVENT_DATE,
+        mode: "html"
+      });
+      showMsg(msg, "HTML をダウンロードしました。");
+    } catch (e) {
+      showMsg(msg, "失敗: " + (e.message || e), true);
+    }
+  }
+
   function exportPDF() {
-    window.print();
+    exportShiftSheetPreview();
+  }
+
+  function refreshAdminTools() {
+    if (window.G5AdminTools && G5AdminTools.refresh) {
+      G5AdminTools.refresh({
+        shifts: shiftsCache,
+        users: usersCache,
+        tantoOptions: TANTO_OPTIONS
+      });
+    }
   }
 
   function delShift(i) {
@@ -961,6 +1023,10 @@
     if (btnCsv) btnCsv.addEventListener("click", exportCSV);
     var btnPdf = document.getElementById("btn-export-pdf");
     if (btnPdf) btnPdf.addEventListener("click", exportPDF);
+    var btnSheet = document.getElementById("btn-export-sheet");
+    if (btnSheet) btnSheet.addEventListener("click", exportShiftSheetPreview);
+    var btnSheetHtml = document.getElementById("btn-export-sheet-html");
+    if (btnSheetHtml) btnSheetHtml.addEventListener("click", exportShiftSheetHtml);
 
     /* バナー */
     var btnBanner = document.getElementById("btn-save-banner");
