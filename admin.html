@@ -64,7 +64,7 @@
       </div>
 
       <div id="tab-shifts" class="tab-panel">
-        <p class="hint-text">日付は <strong>9/12 固定</strong>。時間と担当・役割のみ設定。</p>
+        <p class="hint-text">日付は <strong>9/12 固定</strong>。時間・担当・役割・メモを設定。</p>
         <div class="form-row form-row-wrap">
           <label class="field">
             <span>担当者</span>
@@ -82,6 +82,12 @@
             <span>役割</span>
             <select id="shift-tanto"></select>
           </label>
+        </div>
+        <div class="form-row form-row-wrap">
+          <label class="field" style="min-width:100%;flex:1;">
+            <span>メモ・備考（任意）</span>
+            <input type="text" id="shift-note" placeholder="例: 入口担当 / 休憩あり" style="width:100%;min-width:200px;">
+          </label>
           <button type="button" class="btn btn-primary" id="btn-add-shift">追加</button>
         </div>
         <div class="preset-row">
@@ -93,7 +99,7 @@
         </div>
         <div id="admin-shift-list" class="shift-list"></div>
         <div class="save-row">
-          <button type="button" class="btn btn-primary" id="btn-save-shifts">GitHubに保存</button>
+          <button type="button" class="btn btn-primary" id="btn-save-shifts">保存（Supabase + GitHub）</button>
           <p id="shift-save-msg" class="msg"></p>
         </div>
       </div>
@@ -112,6 +118,12 @@
           <label class="field">
             <span>役割</span>
             <select id="bulk-tanto"></select>
+          </label>
+        </div>
+        <div class="form-row form-row-wrap">
+          <label class="field" style="min-width:100%;flex:1;">
+            <span>メモ・備考（任意・全員共通）</span>
+            <input type="text" id="bulk-note" placeholder="例: 午前枠 / 研修あり" style="width:100%;min-width:200px;">
           </label>
         </div>
         <div class="preset-row">
@@ -134,7 +146,7 @@
         </div>
         <p id="bulk-csv-msg" class="msg"></p>
         <div class="save-row">
-          <button type="button" class="btn btn-primary" id="btn-save-bulk">GitHubに保存</button>
+          <button type="button" class="btn btn-primary" id="btn-save-bulk">保存（Supabase + GitHub）</button>
           <p id="bulk-save-msg" class="msg"></p>
         </div>
       </div>
@@ -161,7 +173,7 @@
           </table>
         </div>
         <div class="save-row">
-          <button type="button" class="btn btn-primary" id="btn-save-table">GitHubに保存</button>
+          <button type="button" class="btn btn-primary" id="btn-save-table">保存（Supabase + GitHub）</button>
           <p id="table-save-msg" class="msg"></p>
         </div>
       </div>
@@ -201,7 +213,7 @@
         </label>
         <button type="button" class="btn btn-primary btn-urgent" id="btn-urgent-post">⚡ 急募枠を投稿</button>
         <div class="save-row">
-          <button type="button" class="btn btn-primary" id="btn-save-urgent">GitHubに保存</button>
+          <button type="button" class="btn btn-primary" id="btn-save-urgent">保存（Supabase + GitHub）</button>
           <p id="urgent-save-msg" class="msg"></p>
         </div>
       </div>
