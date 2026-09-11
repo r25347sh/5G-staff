@@ -56,6 +56,7 @@
       <div class="admin-tabs">
         <button type="button" class="tab active" data-tab="shifts">個別登録</button>
         <button type="button" class="tab" data-tab="bulk">一括登録</button>
+        <button type="button" class="tab" data-tab="table">テーブル追加</button>
         <button type="button" class="tab" data-tab="urgent">急募</button>
         <button type="button" class="tab" data-tab="export">出力</button>
         <button type="button" class="tab" data-tab="banner">バナー</button>
@@ -98,7 +99,7 @@
       </div>
 
       <div id="tab-bulk" class="tab-panel" hidden>
-        <p class="hint-text">同じ時間帯に複数人を一括登録（9/12）。</p>
+        <p class="hint-text">同じ時間帯に複数人を一括登録（9/12）。CSVインポートも可能（出力タブと同じ形式）。</p>
         <div class="form-row form-row-wrap">
           <label class="field">
             <span>開始</span>
@@ -125,7 +126,44 @@
           <div id="bulk-users" class="bulk-users-grid"></div>
         </div>
         <button type="button" class="btn btn-primary" id="btn-bulk-add">選択した人を一括追加</button>
-        <p class="hint-text" style="margin-top:0.8rem">追加後、「個別登録」タブから GitHubに保存 してください。</p>
+        <hr style="border-color:rgba(255,255,255,0.1);margin:1.25rem 0;">
+        <p class="field-label">CSVインポート（出力タブのCSVと同じ形式）</p>
+        <div class="form-row" style="align-items:center;gap:0.75rem;">
+          <input type="file" id="bulk-csv-file" accept=".csv,text/csv" style="font-size:0.85rem;">
+          <button type="button" class="btn btn-ghost" id="btn-bulk-csv-import">CSVから追加</button>
+        </div>
+        <p id="bulk-csv-msg" class="msg"></p>
+        <div class="save-row">
+          <button type="button" class="btn btn-primary" id="btn-save-bulk">GitHubに保存</button>
+          <p id="bulk-save-msg" class="msg"></p>
+        </div>
+      </div>
+
+      <div id="tab-table" class="tab-panel" hidden>
+        <p class="hint-text">スプレッドシート風に複数行を一気に入力。ユーザー・時間・役割・メモを設定して追加できます。</p>
+        <div class="table-add-toolbar" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-table-add-rows">行を5行追加</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-table-commit">入力行をシフトに反映</button>
+        </div>
+        <div class="table-add-wrap">
+          <table class="table-add-grid" id="table-add-grid">
+            <thead>
+              <tr>
+                <th style="width:2.5rem">#</th>
+                <th>ユーザー</th>
+                <th>開始</th>
+                <th>終了</th>
+                <th>役割</th>
+                <th>メモ</th>
+              </tr>
+            </thead>
+            <tbody id="table-add-body"></tbody>
+          </table>
+        </div>
+        <div class="save-row">
+          <button type="button" class="btn btn-primary" id="btn-save-table">GitHubに保存</button>
+          <p id="table-save-msg" class="msg"></p>
+        </div>
       </div>
 
       <div id="tab-urgent" class="tab-panel" hidden>
@@ -162,7 +200,10 @@
           <input type="text" id="urgent-note" placeholder="例: 受付増員希望" style="width:100%;margin-top:0.35rem">
         </label>
         <button type="button" class="btn btn-primary btn-urgent" id="btn-urgent-post">⚡ 急募枠を投稿</button>
-        <p class="hint-text" style="margin-top:0.8rem">投稿後、GitHubに保存すると対象者のシフト画面に表示されます。</p>
+        <div class="save-row">
+          <button type="button" class="btn btn-primary" id="btn-save-urgent">GitHubに保存</button>
+          <p id="urgent-save-msg" class="msg"></p>
+        </div>
       </div>
 
       <div id="tab-export" class="tab-panel" hidden>
@@ -184,7 +225,7 @@
           <label class="chk-label"><input type="checkbox" class="banner-page" value="manual" checked> manual</label>
           <label class="chk-label"><input type="checkbox" class="banner-page" value="admin"> admin</label>
         </fieldset>
-        <button type="button" class="btn btn-primary" id="btn-save-banner">保存</button>
+        <button type="button" class="btn btn-primary" id="btn-save-banner">GitHubに保存</button>
         <p id="banner-save-msg" class="msg"></p>
       </div>
 
@@ -238,7 +279,6 @@
     </section>
   </main>
   <footer class="site-footer"><p><strong>G⁵ Portal</strong></p></footer>
-  <!-- load.js が common/api/supabase/email/notif/auth-ui を読込済み。ページ固有のみ追加 -->
   <script src="src/js/shift.js"></script>
   <script src="js/qr-login.js"></script>
   <script src="js/admin.js"></script>
