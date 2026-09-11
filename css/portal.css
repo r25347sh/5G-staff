@@ -106,3 +106,11 @@
 .shift-list:has(.shift-table-wrap) {
   display: block;
 }
+
+
+/* g5-polish-v2 */
+.portal-shell,
+.shell {
+  position: relative;
+  z-index: 1;
+}
