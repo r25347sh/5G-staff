@@ -378,3 +378,44 @@
     min-width: 0;
   }
 }
+
+
+/* g5-polish-v2 */
+.poker-page {
+  animation: panel-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.poker-table {
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.5),
+    inset 0 0 60px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 215, 0, 0.15);
+}
+.balance-bar {
+  gap: 0.65rem;
+}
+.stat-pill {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 14px;
+  padding: 0.55rem 0.9rem;
+  text-align: center;
+}
+.stat-pill .label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: rgba(245, 240, 255, 0.5);
+}
+.stat-pill .value {
+  font-family: Cinzel, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.stat-pill .value.gold {
+  color: #ffd700;
+}
+.btn-poker {
+  transition: transform 0.2s cubic-bezier(0.34, 1.45, 0.64, 1), box-shadow 0.2s;
+}
+.btn-poker:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
