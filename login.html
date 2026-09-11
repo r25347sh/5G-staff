@@ -139,7 +139,7 @@
         }
         msg.textContent = "LINE を確認しています…";
         msg.classList.remove("error");
-        var ok = await G5AuthUI.tryAutoLoginWithLine();
+        var ok = await G5AuthUI.tryAutoLoginWithLine({ force: true });
         if (ok) {
           msg.textContent = "LINE連携アカウントでログインしました。移動します…";
           var sess = G5.getSession();
@@ -186,19 +186,38 @@
       var lineBtn = document.getElementById("btn-line-login");
       if (lineBtn) lineBtn.addEventListener("click", doLineLogin);
 
-      /* 既にセッションがあれば already 表示。なければ LINE 自動ログインを静かに試す */
-      if (!G5.getSession() && window.G5AuthUI && G5AuthUI.tryAutoLoginWithLine) {
+      /* LINE から戻ってきたときだけ自動ログイン（通常の訪問では LINE を触らない） */
+      var linePending = false;
+      try {
+        linePending = sessionStorage.getItem("g5_line_pending") === "1";
+      } catch (e) {}
+      if (
+        linePending &&
+        !G5.getSession() &&
+        window.G5AuthUI &&
+        G5AuthUI.tryAutoLoginWithLine
+      ) {
         try {
-          var auto = await G5AuthUI.tryAutoLoginWithLine();
+          var auto = await G5AuthUI.tryAutoLoginWithLine({ force: true });
+          try {
+            sessionStorage.removeItem("g5_line_pending");
+          } catch (e2) {}
           if (auto) {
             showAlready();
             var msg = document.getElementById("login-msg");
             if (msg) {
-              msg.textContent = "LINE連携アカウントで自動ログインしました";
+              msg.textContent = "LINE連携アカウントでログインしました";
               msg.classList.remove("error");
             }
+            setTimeout(function () {
+              redirectAfterLogin(G5.getSession());
+            }, 400);
           }
-        } catch (e) {}
+        } catch (e) {
+          try {
+            sessionStorage.removeItem("g5_line_pending");
+          } catch (e3) {}
+        }
       }
     });
   })();
