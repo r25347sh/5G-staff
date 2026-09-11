@@ -245,4 +245,32 @@
   function boot() { initAmbient(); loadBanner(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
+
+  /* mark current page in page-nav */
+  function markCurrentNav() {
+    try {
+      var path = (location.pathname || "").split("/").pop() || "index.html";
+      if (!path || path === "") path = "index.html";
+      var sess = null;
+      try { sess = G5.getSession && G5.getSession(); } catch (e2) {}
+      var isStaff = !!(sess && ["admin", "teacher", "temporary"].indexOf(sess.role) !== -1);
+      document.querySelectorAll(".page-nav a[href]").forEach(function (a) {
+        var href = (a.getAttribute("href") || "").split("?")[0];
+        if (href === "admin.html" || href.indexOf("admin.html") !== -1) {
+          a.hidden = !isStaff;
+        }
+        if (href === path || (path === "index.html" && (href === "./" || href === "/" || href === "index.html"))) {
+          a.setAttribute("aria-current", "page");
+        } else {
+          a.removeAttribute("aria-current");
+        }
+      });
+    } catch (e) {}
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", markCurrentNav);
+  } else {
+    markCurrentNav();
+  }
+
 })();
