@@ -197,32 +197,45 @@
     }
   }
 
-  function boot() {
-    render();
-    if (window.G5Supabase) {
-      if (G5Supabase.subscribeNotifications) {
-        G5Supabase.subscribeNotifications(function () {
-          render();
-        });
-      }
-      if (G5Supabase.subscribeReplies) {
-        G5Supabase.subscribeReplies(function (payload) {
-          var nid =
-            payload &&
-            payload.new &&
-            (payload.new.notification_id || payload.new.notificationId);
-          if (!nid) {
-            render();
-            return;
-          }
-          var article = document.querySelector(
-            '.notif-item[data-id="' + String(nid).replace(/"/g, "") + '"]'
-          );
-          if (article) loadReplies(nid, article);
-          else render();
-        });
-      }
+  function subscribeRealtime() {
+    if (!window.G5Supabase) return;
+    if (G5Supabase.subscribeNotifications) {
+      G5Supabase.subscribeNotifications(function () {
+        render();
+      });
     }
+    if (G5Supabase.subscribeReplies) {
+      G5Supabase.subscribeReplies(function (payload) {
+        var nid =
+          payload &&
+          payload.new &&
+          (payload.new.notification_id || payload.new.notificationId);
+        if (!nid) {
+          render();
+          return;
+        }
+        var article = document.querySelector(
+          '.notif-item[data-id="' + String(nid).replace(/"/g, "") + '"]'
+        );
+        if (article) loadReplies(nid, article);
+        else render();
+      });
+    }
+  }
+
+  function boot() {
+    var tries = 0;
+    function attempt() {
+      tries += 1;
+      /* load.js が非同期で supabase を注入するため少し待つ */
+      if (!window.G5Supabase && tries < 25) {
+        setTimeout(attempt, 120);
+        return;
+      }
+      render();
+      subscribeRealtime();
+    }
+    attempt();
   }
 
   if (document.readyState === "loading") {
