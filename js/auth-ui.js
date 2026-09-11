@@ -296,6 +296,9 @@ function stashLineReturn() {
     await ensureLiff();
     if (liff.isLoggedIn()) return true;
     stashLineReturn();
+    try {
+      sessionStorage.setItem("g5_line_pending", "1");
+    } catch (e) {}
     var redirectUri = getLiffRedirectUri(!!options.preferLoginPage);
     try {
       liff.login({ redirectUri: redirectUri });
@@ -352,9 +355,21 @@ function stashLineReturn() {
    * LINE がログイン済み & ポータルに紐づいている場合に自動ログイン
    * （未ログイン時に呼ばれる）
    */
-  async function tryAutoLoginWithLine() {
+  async function tryAutoLoginWithLine(options) {
+    options = options || {};
     if (G5.getSession()) return false;
     try {
+      /*
+       * force なしでは SDK 初期化もしない（index を開くだけで LINE ログイン画面に飛ぶのを防ぐ）
+       * 許可: ユーザー操作後 / LINE から戻ってきた直後 / 既に liff 初期化済み
+       */
+      var returning = false;
+      try {
+        returning = sessionStorage.getItem("g5_line_pending") === "1";
+      } catch (e) {}
+      if (!options.force && !returning && !window.liff) {
+        return false;
+      }
       await ensureLiff();
       if (!liff.isLoggedIn()) return false;
       var profile = await liff.getProfile();
@@ -381,6 +396,9 @@ function stashLineReturn() {
         line_picture_url: profile.pictureUrl || linked.line_picture_url || null
       });
       G5.setLastLoginId(u.id);
+      try {
+        sessionStorage.removeItem("g5_line_pending");
+      } catch (e) {}
 
       /* プロフィール画像が変わっていたら更新 */
       if (profile.pictureUrl && profile.pictureUrl !== linked.line_picture_url) {
@@ -400,20 +418,16 @@ function stashLineReturn() {
   }
 
   async function boot() {
-    // login ページではヘッダーUIは出さない（ログインページ側で LINE ログインボタンを扱う）
+    // login ページではヘッダーUIは出さない（ログインページ側で LINE を扱う）
     var path = (location.pathname || "").toLowerCase();
     if (path.indexOf("login.html") !== -1) return;
 
-    /* 未ログイン時、LINE 連携済みなら自動ログインを試行 */
-    if (!G5.getSession()) {
-      try {
-        var ok = await tryAutoLoginWithLine();
-        if (ok) {
-          /* 自動ログイン成功したら表示更新 */
-        }
-      } catch (e) {}
-    } else {
-      /* 既にセッションがある場合、LINE 画像が無ければプロファイルから補完 */
+    /*
+     * 一般ページでは LINE 自動ログインしない。
+     * （ensureLiff / liff.init が原因で LINE ログイン画面へ飛ばされるのを防ぐ）
+     * LINE ログインは login.html のボタン、またはアカウントメニューの連携からのみ。
+     */
+    if (G5.getSession()) {
       try {
         var sess = G5.getSession();
         if (sess && !sess.line_picture_url && window.G5Supabase) {
