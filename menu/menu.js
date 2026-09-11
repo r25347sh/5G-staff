@@ -28,7 +28,15 @@
       { label: 'ホーム', icon: '✦', url: href('/') },
       { label: 'シフト', icon: '◈', url: href('/shift.html') },
       { label: '通知', icon: '📢', url: href('/notifications.html') },
-      { label: 'マニュアル', icon: '◇', url: href('/manual.html') }
+      { label: 'マニュアル', icon: '◇', url: href('/manual.html') },
+      {
+        label: '展示ゲーム',
+        icon: '♠',
+        items: [
+          { label: 'ルーレット', icon: '🎡', url: href('/roulette.html') },
+          { label: 'ポーカー', icon: '♠', url: href('/poker.html') }
+        ]
+      }
     ];
     if (canSeeAdmin()) {
       items.push({ label: '管理', icon: '✧', url: href('/admin.html') });
