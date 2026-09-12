@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>バカラ簡易 | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>♠️ バカラ簡易</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel">
+    <p class="hint">プレイヤーかバンカーにベット。点数が9に近い方が勝ち（簡易ルール）。</p>
+    <div class="btn-row">
+      <button class="btn" data-bet="P">プレイヤー</button>
+      <button class="btn" data-bet="B">バンカー</button>
+      <button class="btn btn-ghost" data-bet="T">引き分け</button>
+    </div>
+    <div id="board" style="margin-top:1rem;font-size:1.05rem;line-height:1.7"></div>
+    <div class="result" id="result">ベットを選んでください</div>
+  </div>
+</div>
+<script>
+function val(c){ var v=c%13; if(v>=10) return 0; return v+1; } // 0..12 -> A=1
+function hand(){
+  var a=Math.floor(Math.random()*52), b=Math.floor(Math.random()*52);
+  var t=(val(a)+val(b))%10;
+  return {cards:[a,b], total:t};
+}
+function label(c){
+  var ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  var suits=["♠","♥","♦","♣"];
+  return ranks[c%13]+suits[Math.floor(c/13)%4];
+}
+document.querySelectorAll("[data-bet]").forEach(function(btn){
+  btn.onclick=function(){
+    var bet=btn.getAttribute("data-bet");
+    var P=hand(), B=hand();
+    var win=P.total===B.total?"T":(P.total>B.total?"P":"B");
+    document.getElementById("board").innerHTML=
+      "プレイヤー: "+label(P.cards[0])+" "+label(P.cards[1])+" → <strong>"+P.total+"</strong><br>"+
+      "バンカー: "+label(B.cards[0])+" "+label(B.cards[1])+" → <strong>"+B.total+"</strong>";
+    var res=document.getElementById("result");
+    if(bet===win){ res.textContent="的中！ 結果は "+(win==="T"?"引き分け":win==="P"?"プレイヤー":"バンカー"); res.className="result win"; }
+    else { res.textContent="はずれ。結果は "+(win==="T"?"引き分け":win==="P"?"プレイヤー":"バンカー"); res.className="result lose"; }
+  };
+});
+</script>
+</body></html>

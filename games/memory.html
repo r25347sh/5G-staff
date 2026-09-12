@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>神経衰弱 | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    .board { display:grid; grid-template-columns:repeat(4,1fr); gap:0.5rem; max-width:360px; margin:0.75rem auto; }
+    .tile {
+      aspect-ratio:1; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
+      background:linear-gradient(145deg,rgba(255,45,149,0.25),rgba(0,245,255,0.12));
+      display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+      cursor:pointer; user-select:none; transition:transform 0.2s, background 0.2s;
+    }
+    .tile.open, .tile.done { background:rgba(255,255,255,0.12); }
+    .tile.done { opacity:0.55; cursor:default; }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>🧠 神経衰弱</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel">
+    <p class="hint">同じ絵柄を2枚揃えて消そう。手数を競うイベント用。</p>
+    <div class="board" id="board"></div>
+    <div class="btn-row" style="justify-content:center"><button class="btn btn-ghost" id="reset">リセット</button></div>
+    <div class="result" id="result">タップして開始</div>
+  </div>
+</div>
+<script>
+(function(){
+  var icons=["🍒","🍋","🔔","⭐","💎","🍉","🍇","🍀"];
+  var cells=[], first=null, lock=false, moves=0, matched=0;
+  function build(){
+    var deck=icons.concat(icons);
+    for(var i=deck.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+    var board=document.getElementById("board"); board.innerHTML="";
+    cells=deck.map(function(ic,idx){
+      var d=document.createElement("div"); d.className="tile"; d.dataset.i=idx; d.dataset.v=ic; d.textContent="？";
+      d.onclick=function(){ flip(idx); };
+      board.appendChild(d); return d;
+    });
+    first=null; lock=false; moves=0; matched=0;
+    document.getElementById("result").textContent="スタート"; document.getElementById("result").className="result";
+  }
+  function flip(i){
+    if(lock) return; var el=cells[i]; if(el.classList.contains("open")||el.classList.contains("done")) return;
+    el.classList.add("open"); el.textContent=el.dataset.v;
+    if(first===null){ first=i; return; }
+    moves++; lock=true;
+    var a=cells[first], b=el;
+    if(a.dataset.v===b.dataset.v){
+      a.classList.add("done"); b.classList.add("done"); matched++; first=null; lock=false;
+      if(matched>=icons.length){
+        document.getElementById("result").textContent="クリア！ 手数 "+moves; document.getElementById("result").className="result win";
+      }
+    } else {
+      setTimeout(function(){ a.classList.remove("open"); b.classList.remove("open"); a.textContent="？"; b.textContent="？"; first=null; lock=false; }, 650);
+    }
+    document.getElementById("result").textContent="手数: "+moves;
+  }
+  document.getElementById("reset").onclick=build; build();
+})();
+</script>
+</body></html>

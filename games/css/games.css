@@ -1,0 +1,115 @@
+/* G⁵ Games — shared casino mini-games */
+:root {
+  --bg: #07050f;
+  --panel: rgba(18, 12, 28, 0.92);
+  --pink: #ff2d95;
+  --cyan: #00f5ff;
+  --gold: #f5c842;
+  --text: #f5f0ff;
+  --muted: rgba(245, 240, 255, 0.65);
+  --line: rgba(255, 255, 255, 0.12);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  min-height: 100%;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(255,45,149,0.18), transparent),
+              radial-gradient(900px 500px at 90% 10%, rgba(0,245,255,0.12), transparent),
+              var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+}
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.games-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 3.5rem;
+}
+.games-header {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.games-header h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  background: linear-gradient(105deg, #fff, var(--pink), var(--cyan));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.games-header nav { display: flex; flex-wrap: wrap; gap: 0.65rem; font-size: 0.88rem; }
+.games-header nav a { opacity: 0.85; }
+.games-header nav a:hover { opacity: 1; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.1rem 1.2rem;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  margin-bottom: 1rem;
+}
+.hint { color: var(--muted); font-size: 0.88rem; margin: 0.35rem 0 0.85rem; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+  border: 0; border-radius: 999px; cursor: pointer; font: inherit; font-weight: 650;
+  padding: 0.65rem 1.25rem; color: #fff;
+  background: linear-gradient(105deg, var(--pink), #c026d3);
+  box-shadow: 0 6px 20px rgba(255,45,149,0.35);
+  transition: transform 0.15s var(--ease), box-shadow 0.15s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,45,149,0.45); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-ghost {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--line);
+  box-shadow: none; color: var(--text);
+}
+.btn-row { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; }
+
+.chip {
+  display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px;
+  background: rgba(255,45,149,0.18); border: 1px solid rgba(255,45,149,0.35);
+  font-size: 0.78rem; font-weight: 600;
+}
+.result {
+  margin-top: 0.9rem; padding: 0.75rem 1rem; border-radius: 12px;
+  background: rgba(0,245,255,0.08); border: 1px solid rgba(0,245,255,0.25);
+  font-weight: 600; min-height: 1.4em;
+}
+.result.win { background: rgba(245,200,66,0.12); border-color: rgba(245,200,66,0.4); color: var(--gold); }
+.result.lose { background: rgba(255,45,149,0.1); border-color: rgba(255,45,149,0.3); }
+
+.grid-games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+.game-card {
+  display: block; padding: 1.1rem 1rem; border-radius: 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--line);
+  color: inherit; text-decoration: none;
+  transition: border-color 0.2s, transform 0.2s var(--ease), background 0.2s;
+}
+.game-card:hover {
+  border-color: rgba(255,45,149,0.45); transform: translateY(-3px);
+  background: rgba(255,45,149,0.08); text-decoration: none;
+}
+.game-card .icon { font-size: 1.75rem; margin-bottom: 0.4rem; }
+.game-card h3 { margin: 0 0 0.35rem; font-size: 1.02rem; }
+.game-card p { margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+
+input[type="number"], input[type="text"], select {
+  background: rgba(0,0,0,0.35); border: 1px solid var(--line); color: var(--text);
+  border-radius: 10px; padding: 0.5rem 0.7rem; font: inherit;
+}
+label.field { display: block; font-size: 0.85rem; margin-bottom: 0.55rem; color: var(--muted); }
+label.field > * { margin-top: 0.3rem; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,149,0.35); }
+  50% { box-shadow: 0 0 24px 4px rgba(255,45,149,0.25); }
+}
+.glow-active { animation: pulse-glow 1.2s ease-in-out infinite; }

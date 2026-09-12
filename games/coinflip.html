@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>コイントス | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    .coin {
+      width: 120px; height: 120px; margin: 1.5rem auto; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe08a, #c9a227 60%, #8a7014);
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.5rem; font-weight:800; color:#3a2e08;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.25);
+      transition: transform 0.1s;
+    }
+    .coin.flip { animation: flip 0.9s ease-in-out; }
+    @keyframes flip {
+      0% { transform: rotateY(0) scale(1); }
+      50% { transform: rotateY(900deg) scale(1.15); }
+      100% { transform: rotateY(1800deg) scale(1); }
+    }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>🪙 コイントス</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel" style="text-align:center">
+    <p class="hint">表か裏を選んでからトス。</p>
+    <div class="coin" id="coin">？</div>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" data-c="表">表</button>
+      <button class="btn btn-ghost" data-c="裏">裏</button>
+    </div>
+    <div class="result" id="result">予想を選んでください</div>
+  </div>
+</div>
+<script>
+var pick=null;
+document.querySelectorAll("[data-c]").forEach(function(b){
+  b.onclick=function(){
+    pick=b.getAttribute("data-c");
+    var coin=document.getElementById("coin");
+    coin.classList.remove("flip"); void coin.offsetWidth; coin.classList.add("flip");
+    setTimeout(function(){
+      var out=Math.random()<0.5?"表":"裏";
+      coin.textContent=out==="表"?"表":"裏";
+      var res=document.getElementById("result");
+      if(out===pick){ res.textContent="当たり！ "+out; res.className="result win"; }
+      else { res.textContent="はずれ… 結果は "+out; res.className="result lose"; }
+    }, 900);
+  };
+});
+</script>
+</body></html>

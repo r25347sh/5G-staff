@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>スロット | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    .reels { display:flex; gap:0.5rem; justify-content:center; margin:1rem 0; }
+    .reel {
+      width: 5.2rem; height: 5.2rem; border-radius: 14px;
+      background: rgba(0,0,0,0.45); border: 2px solid rgba(255,45,149,0.4);
+      display:flex; align-items:center; justify-content:center;
+      font-size: 2.4rem; overflow:hidden; position:relative;
+    }
+    .reel.spinning { animation: reel-blur 0.12s linear infinite; }
+    @keyframes reel-blur { 50% { filter: blur(2px); transform: translateY(2px); } }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>🎰 スロット</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel">
+    <p class="hint">同じ絵柄が3つ揃うと当たり。7が揃うとジャックポット。</p>
+    <div class="reels">
+      <div class="reel" id="r0">🍒</div>
+      <div class="reel" id="r1">🍋</div>
+      <div class="reel" id="r2">🔔</div>
+    </div>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" id="spin">スピン</button>
+    </div>
+    <div class="result" id="result">スピンを押してください</div>
+  </div>
+</div>
+<script>
+(function(){
+  var syms = ["🍒","🍋","🔔","⭐","7️⃣","💎","🍉"];
+  var spinning = false;
+  function spin(){
+    if (spinning) return;
+    spinning = true;
+    document.getElementById("spin").disabled = true;
+    var els = [0,1,2].map(function(i){ return document.getElementById("r"+i); });
+    els.forEach(function(e){ e.classList.add("spinning"); });
+    var final = [];
+    var n = 0;
+    var t = setInterval(function(){
+      els.forEach(function(e,i){
+        if (n < 12 + i*4) e.textContent = syms[Math.floor(Math.random()*syms.length)];
+      });
+      n++;
+      if (n > 24) {
+        clearInterval(t);
+        els.forEach(function(e,i){
+          e.classList.remove("spinning");
+          final[i] = syms[Math.floor(Math.random()*syms.length)];
+          e.textContent = final[i];
+        });
+        var res = document.getElementById("result");
+        if (final[0]===final[1] && final[1]===final[2]) {
+          if (final[0]==="7️⃣") { res.textContent="🎉 ジャックポット！！"; res.className="result win"; }
+          else { res.textContent="当たり！ "+final[0]+" 揃い"; res.className="result win"; }
+        } else if (final[0]===final[1] || final[1]===final[2] || final[0]===final[2]) {
+          res.textContent="惜しい… 2つ一致"; res.className="result";
+        } else {
+          res.textContent="はずれ。もう一回！"; res.className="result lose";
+        }
+        spinning=false;
+        document.getElementById("spin").disabled=false;
+      }
+    }, 80);
+  }
+  document.getElementById("spin").onclick=spin;
+})();
+</script>
+</body></html>

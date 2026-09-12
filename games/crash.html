@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>クラッシュ | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    .mult {
+      font-size: 3rem; font-weight: 800; text-align:center; margin:1rem 0;
+      background:linear-gradient(105deg,#fff,#f5c842,#ff2d95);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      transition: filter 0.1s;
+    }
+    .mult.crash { filter:saturate(0.3); color:#ff6b9d; background:none; -webkit-text-fill-color:#ff6b9d; }
+    .bar { height:8px; border-radius:99px; background:rgba(255,255,255,0.08); overflow:hidden; }
+    .bar > i { display:block; height:100%; width:0; background:linear-gradient(90deg,#00f5ff,#ff2d95); transition:width 0.05s linear; }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>📈 クラッシュ</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel">
+    <p class="hint">倍率が上がっている間に「降りる」。クラッシュしたら負け。イベント実演用。</p>
+    <div class="mult" id="m">×1.00</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="btn-row" style="justify-content:center;margin-top:1rem">
+      <button class="btn" id="start">スタート</button>
+      <button class="btn btn-ghost" id="cash" disabled>降りる</button>
+    </div>
+    <div class="result" id="result">スタートを押してください</div>
+  </div>
+</div>
+<script>
+(function(){
+  var timer=null, mult=1, crashed=false, cashed=false;
+  var crashAt=0;
+  function resetUI(){
+    document.getElementById("m").className="mult";
+    document.getElementById("m").textContent="×1.00";
+    document.getElementById("bar").style.width="0%";
+  }
+  document.getElementById("start").onclick=function(){
+    if(timer) return;
+    crashed=false; cashed=false; mult=1;
+    crashAt=1+Math.pow(Math.random(),1.4)*8; // 1..~9
+    resetUI();
+    document.getElementById("start").disabled=true;
+    document.getElementById("cash").disabled=false;
+    document.getElementById("result").textContent="上昇中… 好きなタイミングで降りて！";
+    document.getElementById("result").className="result";
+    var t0=Date.now();
+    timer=setInterval(function(){
+      mult=1+(Date.now()-t0)/1000*0.55;
+      document.getElementById("m").textContent="×"+mult.toFixed(2);
+      document.getElementById("bar").style.width=Math.min(100,(mult/crashAt)*100)+"%";
+      if(mult>=crashAt){
+        clearInterval(timer); timer=null; crashed=true;
+        document.getElementById("m").className="mult crash";
+        document.getElementById("m").textContent="CRASH @ ×"+crashAt.toFixed(2);
+        document.getElementById("cash").disabled=true;
+        document.getElementById("start").disabled=false;
+        if(!cashed){
+          document.getElementById("result").textContent="クラッシュ！ 降りられなかった…";
+          document.getElementById("result").className="result lose";
+        }
+      }
+    }, 50);
+  };
+  document.getElementById("cash").onclick=function(){
+    if(!timer || cashed || crashed) return;
+    cashed=true; clearInterval(timer); timer=null;
+    document.getElementById("cash").disabled=true;
+    document.getElementById("start").disabled=false;
+    document.getElementById("result").textContent="降り成功！ ×"+mult.toFixed(2)+" で確定";
+    document.getElementById("result").className="result win";
+  };
+})();
+</script>
+</body></html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>プリンコ | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    canvas { display:block; width:100%; max-width:420px; margin:0 auto; background:rgba(0,0,0,0.35); border-radius:12px; border:1px solid rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>🔮 プリンコ</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel">
+    <p class="hint">ボールを落として下の倍率ゾーンへ。物理っぽい跳ねを簡易再現。</p>
+    <canvas id="c" width="400" height="520"></canvas>
+    <div class="btn-row" style="justify-content:center"><button class="btn" id="drop">ドロップ</button></div>
+    <div class="result" id="result">ドロップしてね</div>
+  </div>
+</div>
+<script>
+(function(){
+  var cv=document.getElementById("c"), ctx=cv.getContext("2d");
+  var multipliers=[0.2,0.5,1,2,5,2,1,0.5,0.2];
+  var pegs=[], ball=null, anim=null;
+  function layout(){
+    pegs=[];
+    var rows=8;
+    for(var r=0;r<rows;r++){
+      var n=r+3;
+      for(var i=0;i<n;i++){
+        var x=40+(i+0.5)*(320/n);
+        var y=60+r*42;
+        pegs.push({x:x,y:y});
+      }
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,400,520);
+    // bins
+    var bw=320/multipliers.length;
+    for(var i=0;i<multipliers.length;i++){
+      ctx.fillStyle=i%2?"rgba(255,45,149,0.2)":"rgba(0,245,255,0.15)";
+      ctx.fillRect(40+i*bw,480,bw-2,30);
+      ctx.fillStyle="#fff"; ctx.font="12px sans-serif"; ctx.textAlign="center";
+      ctx.fillText("×"+multipliers[i], 40+i*bw+bw/2, 500);
+    }
+    ctx.fillStyle="rgba(255,255,255,0.7)";
+    pegs.forEach(function(p){ ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill(); });
+    if(ball){
+      var g=ctx.createRadialGradient(ball.x-3,ball.y-3,0,ball.x,ball.y,10);
+      g.addColorStop(0,"#fff"); g.addColorStop(1,"#f5c842");
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(ball.x,ball.y,9,0,Math.PI*2); ctx.fill();
+    }
+  }
+  function drop(){
+    if(ball && ball.y<480) return;
+    ball={x:200+(Math.random()-0.5)*30,y:20,vx:(Math.random()-0.5)*1.2,vy:0};
+    if(anim) cancelAnimationFrame(anim);
+    function step(){
+      ball.vy+=0.28; ball.x+=ball.vx; ball.y+=ball.vy;
+      pegs.forEach(function(p){
+        var dx=ball.x-p.x, dy=ball.y-p.y, d=Math.sqrt(dx*dx+dy*dy);
+        if(d<13){
+          var nx=dx/(d||1), ny=dy/(d||1);
+          ball.vx+=nx*1.8; ball.vy=Math.abs(ball.vy)*-0.55+ny*0.5;
+          ball.x=p.x+nx*13; ball.y=p.y+ny*13;
+        }
+      });
+      if(ball.x<48){ball.x=48;ball.vx*=-0.6}
+      if(ball.x>352){ball.x=352;ball.vx*=-0.6}
+      draw();
+      if(ball.y>=485){
+        var bw=320/multipliers.length;
+        var idx=Math.min(multipliers.length-1, Math.max(0, Math.floor((ball.x-40)/bw)));
+        var m=multipliers[idx];
+        var res=document.getElementById("result");
+        res.textContent="結果 ×"+m+(m>=2?"  ナイス！":"");
+        res.className=m>=2?"result win":(m<1?"result lose":"result");
+        ball.y=490; draw(); return;
+      }
+      anim=requestAnimationFrame(step);
+    }
+    anim=requestAnimationFrame(step);
+  }
+  layout(); draw();
+  document.getElementById("drop").onclick=drop;
+})();
+</script>
+</body></html>

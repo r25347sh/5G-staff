@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ケノ | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    .nums { display:grid; grid-template-columns:repeat(8,1fr); gap:0.35rem; max-width:420px; margin:0.75rem auto; }
+    .nums button {
+      aspect-ratio:1; border-radius:10px; border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.05); color:#fff; font-weight:700; cursor:pointer;
+    }
+    .nums button.on { background:linear-gradient(135deg,#ff2d95,#c026d3); border-color:transparent; }
+    .nums button.hit { outline:2px solid #f5c842; }
+    .nums button.drawn { background:rgba(0,245,255,0.25); }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>🔢 ケノ</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel">
+    <p class="hint">最大6個まで数字を選んで抽選（20個）。一致数で評価。</p>
+    <div class="nums" id="grid"></div>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" id="go">抽選</button>
+      <button class="btn btn-ghost" id="clr">クリア</button>
+    </div>
+    <div class="result" id="result">数字を選んでください（最大6）</div>
+  </div>
+</div>
+<script>
+(function(){
+  var sel={}, grid=document.getElementById("grid");
+  for(var i=1;i<=40;i++){
+    var b=document.createElement("button"); b.type="button"; b.textContent=i; b.dataset.n=i;
+    b.onclick=function(){
+      var n=+this.dataset.n;
+      if(sel[n]){ delete sel[n]; this.classList.remove("on"); }
+      else {
+        if(Object.keys(sel).length>=6) return;
+        sel[n]=true; this.classList.add("on");
+      }
+    };
+    grid.appendChild(b);
+  }
+  document.getElementById("clr").onclick=function(){
+    sel={}; grid.querySelectorAll("button").forEach(function(b){ b.className=""; });
+    document.getElementById("result").textContent="クリアしました"; document.getElementById("result").className="result";
+  };
+  document.getElementById("go").onclick=function(){
+    var picks=Object.keys(sel).map(Number);
+    if(!picks.length){ alert("1つ以上選んで"); return; }
+    var pool=[]; for(var i=1;i<=40;i++) pool.push(i);
+    var drawn=[];
+    for(var k=0;k<20;k++){ var j=Math.floor(Math.random()*pool.length); drawn.push(pool.splice(j,1)[0]); }
+    grid.querySelectorAll("button").forEach(function(b){
+      var n=+b.dataset.n;
+      b.classList.remove("hit","drawn");
+      if(drawn.indexOf(n)>=0) b.classList.add("drawn");
+      if(sel[n] && drawn.indexOf(n)>=0) b.classList.add("hit");
+    });
+    var hits=picks.filter(function(n){ return drawn.indexOf(n)>=0; }).length;
+    var res=document.getElementById("result");
+    res.textContent="一致 "+hits+" / "+picks.length+(hits>=3?"  ナイス！":"");
+    res.className=hits>=3?"result win":(hits===0?"result lose":"result");
+  };
+})();
+</script>
+</body></html>

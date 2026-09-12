@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>じゃんけん | G⁵ Games</title>
+  <link rel="stylesheet" href="css/games.css">
+  <style>
+    .hands { display:flex; justify-content:center; gap:2rem; margin:1.25rem 0; font-size:3.5rem; }
+    .hands span { display:inline-block; min-width:1.2em; text-align:center; transition:transform 0.25s; }
+    .hands span.pop { animation: pop 0.35s ease; }
+    @keyframes pop { 50% { transform: scale(1.25) rotate(-8deg); } }
+  </style>
+</head>
+<body>
+<div class="games-wrap">
+  <header class="games-header"><h1>✊ じゃんけん</h1>
+    <nav><a href="index.html">一覧</a><a href="../index.html">ホーム</a></nav></header>
+  <div class="panel" style="text-align:center">
+    <p class="hint">ディーラーと三本勝負。先に2勝で勝ち。</p>
+    <div class="hands"><span id="you">❔</span><span style="font-size:1.2rem;opacity:.5;align-self:center">vs</span><span id="cpu">❔</span></div>
+    <p id="score" style="opacity:0.8">あなた 0 — 0 ディーラー</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" data-h="0">✊ グー</button>
+      <button class="btn" data-h="1">✌️ チョキ</button>
+      <button class="btn" data-h="2">🖐️ パー</button>
+      <button class="btn btn-ghost" id="reset">リセット</button>
+    </div>
+    <div class="result" id="result">手を選んでください</div>
+  </div>
+</div>
+<script>
+(function(){
+  var icons=["✊","✌️","🖐️"], ys=0, cs=0;
+  function play(h){
+    var c=Math.floor(Math.random()*3);
+    var you=document.getElementById("you"), cpu=document.getElementById("cpu");
+    you.textContent=icons[h]; cpu.textContent=icons[c];
+    you.classList.remove("pop"); cpu.classList.remove("pop");
+    void you.offsetWidth; you.classList.add("pop"); cpu.classList.add("pop");
+    var res=document.getElementById("result");
+    if(h===c){ res.textContent="あいこ"; res.className="result"; }
+    else if((h+1)%3===c){ ys++; res.textContent="勝ち！"; res.className="result win"; }
+    else { cs++; res.textContent="負け…"; res.className="result lose"; }
+    document.getElementById("score").textContent="あなた "+ys+" — "+cs+" ディーラー";
+    if(ys>=2||cs>=2){
+      res.textContent=(ys>cs?"三本勝負 勝利！":"三本勝負 敗北…")+" （"+ys+"-"+cs+"）";
+      res.className=ys>cs?"result win":"result lose";
+    }
+  }
+  document.querySelectorAll("[data-h]").forEach(function(b){
+    b.onclick=function(){ if(ys>=2||cs>=2) return; play(+b.getAttribute("data-h")); };
+  });
+  document.getElementById("reset").onclick=function(){
+    ys=0; cs=0;
+    document.getElementById("you").textContent="❔";
+    document.getElementById("cpu").textContent="❔";
+    document.getElementById("score").textContent="あなた 0 — 0 ディーラー";
+    document.getElementById("result").textContent="リセットしました";
+    document.getElementById("result").className="result";
+  };
+})();
+</script>
+</body></html>
