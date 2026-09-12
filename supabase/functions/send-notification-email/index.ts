@@ -48,21 +48,28 @@ serve(async (req) => {
     const fromName = String(payload.from_name || "staff");
     const link = String(payload.link || "");
 
-    const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    let q = sb.from("user_profiles").select("email, user_id").not("email", "is", null);
-    // target が配列の場合のみ絞る（"all" は全員の登録メールへ）
-    if (Array.isArray(to) && to.length) {
-      q = q.in("user_id", to);
-    } else if (typeof to === "string" && to !== "all" && to !== "students" && to !== "staff") {
-      q = q.eq("user_id", to);
+    let emails: string[] = [];
+    if (Array.isArray(payload.emails) && payload.emails.length) {
+      emails = payload.emails
+        .map((e: unknown) => String(e || "").trim().toLowerCase())
+        .filter((e: string) => e.includes("@"));
+    } else {
+      const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      let q = sb.from("user_profiles").select("email, user_id, notify_email").not("email", "is", null);
+      if (Array.isArray(to) && to.length) {
+        q = q.in("user_id", to);
+      } else if (typeof to === "string" && to !== "all" && to !== "students" && to !== "staff") {
+        q = q.eq("user_id", to);
+      }
+      const { data: profiles, error } = await q;
+      if (error) throw error;
+      emails = (profiles || [])
+        .filter((p: { email?: string; notify_email?: boolean }) => p && p.email && p.notify_email !== false)
+        .map((p: { email?: string }) => p.email!)
+        .filter((e: string) => e.includes("@"));
     }
-
-    const { data: profiles, error } = await q;
-    if (error) throw error;
-
-    const emails = (profiles || [])
-      .map((p: { email?: string }) => p.email)
-      .filter((e: string | undefined): e is string => !!e && e.includes("@"));
+    // unique
+    emails = Array.from(new Set(emails));
 
     if (!emails.length) {
       return new Response(JSON.stringify({ ok: true, sent: 0, reason: "no emails" }), {

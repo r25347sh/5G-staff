@@ -765,7 +765,7 @@
     if (toMode === "students") {
       target = usersCache
         .filter(function (u) {
-          return u.role === "student";
+          return u.role === "student" || u.role === "temporary";
         })
         .map(function (u) {
           return u.id;
@@ -787,8 +787,9 @@
     showMsg(msg, "送信中…");
     try {
       var sess = (window.G5 && G5.getSession && G5.getSession()) || {};
+      var sentItem = null;
       if (window.G5Notif && G5Notif.sendNotification) {
-        await G5Notif.sendNotification({
+        sentItem = await G5Notif.sendNotification({
           title: title,
           body: body,
           author_id: sess.id || "admin",
@@ -800,7 +801,7 @@
           link: link || ""
         });
       } else if (window.G5Supabase && G5Supabase.createNotification) {
-        await G5Supabase.createNotification({
+        sentItem = await G5Supabase.createNotification({
           title: title,
           body: body,
           author_id: sess.id || "admin",
@@ -811,15 +812,114 @@
           level: level,
           link: link || ""
         });
+        /* createNotification 単独時もメールを直接キュー */
+        if (window.G5Email && G5Email.sendNotificationEmail) {
+          try {
+            sentItem.emailResult = await G5Email.sendNotificationEmail({
+              to: target,
+              title: title,
+              body: body,
+              from_name: sess.name || "管理者",
+              link: link || ""
+            });
+          } catch (ee) {
+            sentItem.emailResult = { ok: false, error: String(ee.message || ee) };
+          }
+        }
       } else {
         throw new Error("通知APIが利用できません");
       }
-      showMsg(msg, "送信しました");
+
+      var er = (sentItem && sentItem.emailResult) || null;
+      var extra = "";
+      if (er) {
+        if (er.recipients === 0) {
+          extra = " / メール: 登録アドレスなし（各ユーザーがアカウントメニューでメール登録が必要）";
+        } else if (er.queued) {
+          extra =
+            " / メール: " +
+            er.recipients +
+            "件をキュー投入（GASが1〜5分以内に送信）";
+        } else if (er.edgeSent) {
+          extra = " / メール: Edgeで" + er.edgeSent + "件送信";
+        } else if (er.ok) {
+          extra = " / メール: OK";
+        } else if (er.reason) {
+          extra = " / メール: " + er.reason;
+        } else if (er.error) {
+          extra = " / メール失敗: " + er.error;
+        }
+      } else {
+        extra = " / メール: モジュール未読込";
+      }
+      showMsg(msg, "通知を送信しました" + extra, !!(er && er.recipients === 0 && !er.queued && !er.edgeSent));
       document.getElementById("notify-title").value = "";
       document.getElementById("notify-body").value = "";
       loadNotifyHistory();
+      refreshMailQueueStatus();
     } catch (e) {
       showMsg(msg, "失敗: " + e.message, true);
+    }
+  }
+
+  async function refreshMailQueueStatus() {
+    var el = document.getElementById("mail-queue-status");
+    if (!el) return;
+    if (!window.G5Email || !G5Email.getQueueStats) {
+      el.innerHTML = "<p class=\"hint-text\">メールモジュール未読込</p>";
+      return;
+    }
+    el.innerHTML = "<p class=\"hint-text\">メールキュー確認中…</p>";
+    try {
+      var st = await G5Email.getQueueStats();
+      if (!st.ok) {
+        el.innerHTML =
+          '<p class="msg error">キュー取得失敗: ' +
+          (st.error || st.reason || "") +
+          "</p>";
+        return;
+      }
+      var html =
+        '<p class="hint-text">登録メール数: <strong>' +
+        st.registeredEmails +
+        "</strong> · pending: <strong>" +
+        st.pendingCount +
+        "</strong></p>";
+      if (!(st.recent || []).length) {
+        html += '<p class="hint-text">mail_queue は空です</p>';
+      } else {
+        html += '<ul style="list-style:none;padding:0;margin:0.5rem 0;font-size:0.82rem;">';
+        st.recent.slice(0, 8).forEach(function (r) {
+          var stLabel = r.status || "?";
+          var color =
+            stLabel === "sent"
+              ? "#4ade80"
+              : stLabel === "error"
+                ? "#ff6b9d"
+                : "#fbbf24";
+          html +=
+            "<li style=\"padding:0.35rem 0;border-bottom:1px solid rgba(255,255,255,0.06);\">" +
+            '<span style="color:' +
+            color +
+            ';font-weight:600;">[' +
+            stLabel +
+            "]</span> " +
+            (r.title || "") +
+            " <span style=\"opacity:0.55;\">" +
+            (r.created_at || "").slice(0, 16).replace("T", " ") +
+            "</span>" +
+            (r.error
+              ? ' <span style="color:#ff6b9d;">· ' + r.error + "</span>"
+              : "") +
+            "</li>";
+        });
+        html += "</ul>";
+      }
+      html +=
+        '<p class="hint-text" style="margin-top:0.5rem;">pending が残る場合は GAS の processMailQueue トリガーを確認してください。</p>';
+      el.innerHTML = html;
+    } catch (e) {
+      el.innerHTML = '<p class="msg error">' + (e.message || e) + "</p>";
     }
   }
 
@@ -1035,6 +1135,8 @@
     /* 通知 */
     var btnNotify = document.getElementById("btn-send-notify");
     if (btnNotify) btnNotify.addEventListener("click", sendNotify);
+    var btnMailRefresh = document.getElementById("btn-mail-queue-refresh");
+    if (btnMailRefresh) btnMailRefresh.addEventListener("click", refreshMailQueueStatus);
     var notifyTo = document.getElementById("notify-to");
     if (notifyTo)
       notifyTo.addEventListener("change", function () {

@@ -187,6 +187,7 @@
         await G5Supabase.upsertUserProfile({
           user_id: sess.id,
           email: email || null,
+          notify_email: email ? true : false,
           updated_at: new Date().toISOString()
         });
         msg.textContent = "保存しました";

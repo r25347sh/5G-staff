@@ -679,9 +679,13 @@
     if (lastErr) throw lastErr;
 
     mergeInbox(item);
+    var emailResult = null;
     try {
-      await dispatchEmail(item);
-    } catch (e) {}
+      emailResult = await dispatchEmail(item);
+    } catch (e) {
+      emailResult = { ok: false, error: String(e && e.message ? e.message : e) };
+    }
+    item.emailResult = emailResult;
     return item;
   }
 

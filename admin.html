@@ -304,6 +304,14 @@
         </label>
         <button type="button" class="btn btn-primary" id="btn-send-notify">通知を送信</button>
         <p id="notify-msg" class="msg" role="status"></p>
+        <div class="admin-card" style="margin:1rem 0;padding:0.9rem 1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+            <h3 style="font-size:1rem;margin:0;">メール送信キュー</h3>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-mail-queue-refresh">更新</button>
+          </div>
+          <p class="hint-text" style="margin:0.4rem 0 0.2rem;">通知送信時に mail_queue へ投入 → GAS が学校メアドから送信します。</p>
+          <div id="mail-queue-status"><p class="hint-text">（通知タブ表示時に自動読込）</p></div>
+        </div>
         <hr style="border-color:rgba(255,255,255,0.1);margin:1.25rem 0;">
         <h3 style="font-size:1rem;">最近の通知</h3>
         <div id="notify-history" class="shift-list"></div>
