@@ -571,5 +571,20 @@
     "note": "",
     "open": false,
     "urgent": false
+  },
+  {
+    "shift_id": "u30v9fe9i",
+    "user_id": "open",
+    "date": "2026-09-12",
+    "time_start": "09:00",
+    "time_end": "10:30",
+    "tanto": "総務",
+    "open": true,
+    "urgent": true,
+    "note": "回転率増加のため（最悪いなくても大丈夫です）。案内できるゲームがないときのために、雑談とかで盛り上がることができる人がいたら、その人は応募お願いいたします。",
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": []
   }
 ]
