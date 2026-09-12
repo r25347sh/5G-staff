@@ -1,36 +1,42 @@
 /**
  * G⁵ Portal - メール送信（学校 Workspace 向け）
  *
- * 【重要】アクセスを「大学内の全員」しか選べない場合:
- *   ウェブアプリの匿名POSTは使えません。
- *   代わりに「メールキュー方式」を使います。
- *
- * 方式A（推奨・ドメイン制限OK）:
+ * 方式A（推奨）:
  *   1. サイトが Supabase mail_queue に行を追加
  *   2. この GAS を 1分おきの時間主導型トリガーで実行
  *   3. GAS がキューを読んで GmailApp で送信
- *   → 「ウェブアプリ公開」不要。差出人は学校アカウント
  *
- * 方式B（アクセスを「全員」にできる場合のみ）:
- *   doPost ウェブアプリ + トークン
+ * セットアップ:
+ * 1. script.google.com （学校アカウント r25347sh@hs.reitaku.jp）
+ * 2. このコードを全文貼り付け
+ * 3. processMailQueue を1回実行して権限承認
+ * 4. トリガー: processMailQueue / 時間主導型 / 1分おき
  *
- * セットアップ（方式A）:
- * 1. script.google.com で新規（学校アカウント r25347sh@hs.reitaku.jp）
- * 2. このコードを貼る
- * 3. SUPABASE_URL / SUPABASE_ANON_KEY を確認（下記は公開 anon）
- * 4. エディタで processMailQueue を1回実行して権限承認
- * 5. トリガー: processMailQueue / 時間主導型 / 1分おき
+ * 2026-09-12: Supabase 504 Gateway Timeout 対策（リトライ + 小バッチ）
  */
 
 var SUPABASE_URL = "https://ngjculhtbbxazgkkelvi.supabase.co";
 var SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5namN1bGh0YmJ4YXpna2tlbHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NjYyMzEsImV4cCI6MjEwNDE0MjIzMX0.2AF7s7-cwgTMGuBl5TN1INhhkTaFJ2z-7Oj8t26iu2k";
 
-var SEND_TOKEN = "CHANGE_ME_TO_A_LONG_SECRET_TOKEN"; // 方式B用
+var SEND_TOKEN = "CHANGE_ME_TO_A_LONG_SECRET_TOKEN";
+var MAX_RETRIES = 4;
+var RETRY_BASE_MS = 1500;
 
 /** トリガーから呼ぶ本体 */
 function processMailQueue() {
-  var pending = sbRequest("GET", "/rest/v1/mail_queue?status=eq.pending&order=created_at.asc&limit=20");
+  var pending;
+  try {
+    pending = sbRequest(
+      "GET",
+      "/rest/v1/mail_queue?status=eq.pending&order=created_at.asc&limit=5&select=id,title,body,from_name,link,emails,status,created_at"
+    );
+  } catch (e) {
+    Logger.log("fetch pending failed (will retry next trigger): " + e);
+    /* 504 で全体を error にしない—次回トリガーで再度 */
+    throw e;
+  }
+
   if (!pending || !pending.length) {
     Logger.log("no pending mail");
     return;
@@ -48,30 +54,49 @@ function processMailQueue() {
         }
       }
       if (!emails || !emails.length) {
-        sbRequest(
-          "PATCH",
-          "/rest/v1/mail_queue?id=eq." + encodeURIComponent(row.id),
-          { status: "sent", sent_at: new Date().toISOString(), error: "no recipients" }
-        );
+        safePatch_(row.id, {
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          error: "no recipients"
+        });
         continue;
       }
 
       sendMail_(row.title, row.body, row.from_name, row.link, emails);
 
-      sbRequest(
-        "PATCH",
-        "/rest/v1/mail_queue?id=eq." + encodeURIComponent(row.id),
-        { status: "sent", sent_at: new Date().toISOString(), error: null }
-      );
+      safePatch_(row.id, {
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        error: null
+      });
       Logger.log("sent " + row.id + " to " + emails.length);
     } catch (err) {
-      sbRequest(
-        "PATCH",
-        "/rest/v1/mail_queue?id=eq." + encodeURIComponent(row.id),
-        { status: "error", error: String(err).slice(0, 500) }
-      );
-      Logger.log("error " + row.id + " " + err);
+      var msg = String(err);
+      Logger.log("error " + row.id + " " + msg);
+      /* 送信後の PATCH 失敗と、送信前失敗を区別 */
+      if (/already sent|Gmail/i.test(msg)) {
+        safePatch_(row.id, {
+          status: "error",
+          error: msg.slice(0, 500)
+        });
+      } else if (/504|502|503|Gateway|Timeout|timed out/i.test(msg)) {
+        /* タイムアウトは pending のまま残し次回へ（error にしない） */
+        Logger.log("transient error, leave pending: " + row.id);
+      } else {
+        safePatch_(row.id, {
+          status: "error",
+          error: msg.slice(0, 500)
+        });
+      }
     }
+  }
+}
+
+function safePatch_(id, body) {
+  try {
+    sbRequest("PATCH", "/rest/v1/mail_queue?id=eq." + encodeURIComponent(id), body);
+  } catch (e) {
+    Logger.log("patch failed " + id + " " + e);
   }
 }
 
@@ -123,28 +148,56 @@ function sendMail_(title, body, fromName, link, emails) {
   }
 }
 
+/**
+ * Supabase REST with retry on 502/503/504/timeout
+ */
 function sbRequest(method, path, body) {
   var url = SUPABASE_URL + path;
-  var headers = {
-    apikey: SUPABASE_ANON_KEY,
-    Authorization: "Bearer " + SUPABASE_ANON_KEY,
-    "Content-Type": "application/json",
-    Prefer: method === "PATCH" ? "return=minimal" : "return=representation"
-  };
-  var options = {
-    method: method,
-    headers: headers,
-    muteHttpExceptions: true
-  };
-  if (body) options.payload = JSON.stringify(body);
-  var res = UrlFetchApp.fetch(url, options);
-  var code = res.getResponseCode();
-  var text = res.getContentText();
-  if (code >= 400) {
-    throw new Error("Supabase " + code + " " + text.slice(0, 200));
+  var lastErr = null;
+
+  for (var attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      Utilities.sleep(RETRY_BASE_MS * Math.pow(2, attempt - 1));
+      Logger.log("retry " + attempt + " " + method + " " + path);
+    }
+    try {
+      var headers = {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: method === "PATCH" ? "return=minimal" : "return=representation"
+      };
+      var options = {
+        method: method,
+        headers: headers,
+        muteHttpExceptions: true,
+        followRedirects: true
+      };
+      if (body) options.payload = JSON.stringify(body);
+
+      var res = UrlFetchApp.fetch(url, options);
+      var code = res.getResponseCode();
+      var text = res.getContentText();
+
+      if (code === 502 || code === 503 || code === 504) {
+        lastErr = new Error("Supabase " + code + " " + text.slice(0, 200));
+        continue;
+      }
+      if (code >= 400) {
+        throw new Error("Supabase " + code + " " + text.slice(0, 200));
+      }
+      if (!text) return null;
+      return JSON.parse(text);
+    } catch (e) {
+      lastErr = e;
+      var m = String(e);
+      if (/504|502|503|Gateway|Timeout|timed out|DNS|Address/i.test(m)) {
+        continue;
+      }
+      throw e;
+    }
   }
-  if (!text) return null;
-  return JSON.parse(text);
+  throw lastErr || new Error("Supabase request failed after retries");
 }
 
 function escapeHtml_(s) {
@@ -155,28 +208,34 @@ function escapeHtml_(s) {
     .replace(/"/g, "&quot;");
 }
 
-/** 手動テスト: キューに自分宛を1件入れてから実行してもよい */
+/** 手動テスト */
 function testSendSelf() {
   var me = Session.getActiveUser().getEmail();
   sendMail_("GASテスト", "G⁵ メール送信テストです。", "管理者", "", [me]);
   Logger.log("sent to " + me);
 }
 
-/* ===== 方式B: ウェブアプリ（「全員」が選べるときだけ） ===== */
+/** pending を手動処理（エディタから実行） */
+function runQueueNow() {
+  processMailQueue();
+}
+
 function doPost(e) {
   try {
     var body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
     if (!body.token || body.token !== SEND_TOKEN) {
-      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: "unauthorized" })).setMimeType(
-        ContentService.MimeType.JSON
-      );
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: false, error: "unauthorized" })
+      ).setMimeType(ContentService.MimeType.JSON);
     }
     sendMail_(body.title, body.body, body.from_name, body.link, body.emails || []);
-    return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) })).setMimeType(
+    return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(
       ContentService.MimeType.JSON
     );
+  } catch (err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, error: String(err) })
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
