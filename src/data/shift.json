@@ -589,5 +589,20 @@
     "slots_needed": 1,
     "slots_filled": 0,
     "assignees": []
+  },
+  {
+    "shift_id": "u5735nyfg",
+    "user_id": "open",
+    "date": "2026-09-12",
+    "time_start": "13:30",
+    "time_end": "14:00",
+    "tanto": "総務",
+    "open": true,
+    "urgent": true,
+    "note": "",
+    "target": "all",
+    "slots_needed": 1,
+    "slots_filled": 0,
+    "assignees": []
   }
 ]
